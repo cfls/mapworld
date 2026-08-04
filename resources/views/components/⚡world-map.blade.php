@@ -22,9 +22,16 @@ new class extends Component
     {{-- JSON data carrier: read once by the script on mount --}}
     <script type="application/json" id="world-map-countries">{!! json_encode($this->countriesByIso) !!}</script>
 
+    <p class="sr-only">
+        Carte mondiale interactive. Cliquez sur un pays pour afficher ses vidéos en langue des signes.
+        Vous pouvez également utiliser la barre de recherche et la liste des pays ci-dessous.
+    </p>
+
     <div
         wire:ignore
         id="world-map"
+        role="application"
+        aria-label="Carte mondiale interactive — sélectionnez un pays"
         class="w-full rounded-xl shadow-md
                h-[300px]
                sm:h-[400px]

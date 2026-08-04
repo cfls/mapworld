@@ -28,7 +28,11 @@ new class extends Component
 };
 ?>
 
-<div>
+<div
+    aria-live="polite"
+    aria-atomic="true"
+    aria-label="Fiche du pays sélectionné"
+>
     @if ($this->country)
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
 
@@ -48,9 +52,9 @@ new class extends Component
             <div class="p-4 space-y-5">
 
                 {{-- LSFB --}}
-                <div>
-                    <h3 class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                <section aria-labelledby="lsfb-heading">
+                    <h3 id="lsfb-heading" class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block" aria-hidden="true"></span>
                         LSFB
                     </h3>
 
@@ -59,6 +63,7 @@ new class extends Component
                             class="w-full aspect-video rounded-lg bg-black"
                             controls
                             preload="metadata"
+                            aria-label="Vidéo LSFB — {{ $this->country->name }}"
                             @if ($this->country->lsfbVideo->thumbnail_url)
                                 poster="{{ $this->country->lsfbVideo->thumbnail_url }}"
                             @endif
@@ -66,19 +71,23 @@ new class extends Component
                             <source src="{{ $this->country->lsfbVideo->cloudinary_url }}" type="video/mp4">
                         </video>
                     @else
-                        <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
-                            <span class="text-3xl">🤟</span>
+                        <div
+                            class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2"
+                            role="img"
+                            aria-label="Vidéo LSFB pas encore disponible pour {{ $this->country->name }}"
+                        >
+                            <span class="text-3xl" aria-hidden="true">🤟</span>
                             <p class="text-xs text-slate-400 font-medium text-center px-4">
                                 Vidéo LSFB pas encore disponible
                             </p>
                         </div>
                     @endif
-                </div>
+                </section>
 
                 {{-- Signes Internationaux --}}
-                <div>
-                    <h3 class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                        <span class="w-2 h-2 rounded-full bg-violet-500 inline-block"></span>
+                <section aria-labelledby="intl-heading">
+                    <h3 id="intl-heading" class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        <span class="w-2 h-2 rounded-full bg-violet-500 inline-block" aria-hidden="true"></span>
                         Signes Internationaux
                     </h3>
 
@@ -87,6 +96,7 @@ new class extends Component
                             class="w-full aspect-video rounded-lg bg-black"
                             controls
                             preload="metadata"
+                            aria-label="Vidéo en Signes Internationaux — {{ $this->country->name }}"
                             @if ($this->country->internationalVideo->thumbnail_url)
                                 poster="{{ $this->country->internationalVideo->thumbnail_url }}"
                             @endif
@@ -94,22 +104,29 @@ new class extends Component
                             <source src="{{ $this->country->internationalVideo->cloudinary_url }}" type="video/mp4">
                         </video>
                     @else
-                        <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
-                            <span class="text-3xl">🌐</span>
+                        <div
+                            class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2"
+                            role="img"
+                            aria-label="Vidéo en Signes Internationaux pas encore disponible pour {{ $this->country->name }}"
+                        >
+                            <span class="text-3xl" aria-hidden="true">🌐</span>
                             <p class="text-xs text-slate-400 font-medium text-center px-4">
                                 Vidéo en Signes Internationaux pas encore disponible
                             </p>
                         </div>
                     @endif
-                </div>
+                </section>
 
             </div>
         </div>
 
     @else
         {{-- Empty state --}}
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-3 h-full min-h-[280px] px-8 text-center">
-            <span class="text-5xl opacity-60">🗺️</span>
+        <div
+            class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-3 h-full min-h-[280px] px-8 text-center"
+            role="status"
+        >
+            <span class="text-5xl opacity-60" aria-hidden="true">🗺️</span>
             <div>
                 <p class="text-slate-600 font-semibold">Sélectionnez un pays</p>
                 <p class="text-slate-400 text-sm mt-1 leading-relaxed">

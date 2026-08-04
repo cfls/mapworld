@@ -9,16 +9,21 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-indigo-700 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
+        Aller au contenu principal
+    </a>
+
+    <header role="banner" class="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3">
-            <span class="text-xl">🌍</span>
-            <h1 class="text-base font-bold text-indigo-700 tracking-tight">CountryWorld</h1>
-            <span class="text-slate-300 text-sm">|</span>
+            <img src="/images/cfls-logo.png" alt="CFLS" class="h-10 w-auto">
+            <h1 class="text-base font-bold text-indigo-700 tracking-tight">Les Pays du Monde</h1>
+            <span class="text-slate-300 text-sm" aria-hidden="true">|</span>
             <p class="text-xs text-slate-500 hidden sm:block">Signes des pays du monde en LSFB et Signes Internationaux</p>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
 
         {{-- Filtro de continentes --}}
         <livewire:continent-filter />
