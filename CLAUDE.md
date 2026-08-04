@@ -164,3 +164,41 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+# CountryWorld — Contexto del proyecto
+
+Plataforma para que usuarios sordos consulten, por país, un video en **LSFB** y uno en
+**Señas Internacionales**. Plan funcional completo en `plan-countryworld.md` — léelo
+antes de trabajar en cualquier fase.
+
+## Reglas específicas del proyecto
+
+- **Idioma**: los nombres de país se guardan y muestran en **francés** (`Belgique`,
+  `Bresil`, `Congo (RDC)`, etc.). No implementar multilenguaje/i18n.
+- **Continentes**: exactamente estos 5, en francés: `Afrique`, `Amerique`, `Asie`,
+  `Europe`, `Oceanie`.
+- **Videos**: se almacenan en **Cloudinary** (paquete `cloudinary-labs/cloudinary-laravel`),
+  nunca en storage local ni en S3. Cada país tiene como máximo un video `lsfb` y uno
+  `international` (constraint único en `sign_videos`).
+- **Mapa**: Leaflet, contenedor `w-full` y responsive por breakpoint (mobile/tablet/desktop).
+  El cruce país↔GeoJSON se hace por `iso_code` (ISO 3166-1 alpha-3), no por nombre.
+- **Livewire**: el proyecto tiene instalado **Livewire v4** (Boost lo detectó así). El
+  plan y los ejemplos de código iniciales se escribieron pensando en Livewire 3 — al
+  implementar, usar `search-docs` (Boost) para confirmar la sintaxis vigente en v4
+  antes de escribir componentes (`#[On]`, `#[Computed]`, `@script`/`@assets`, etc.).
+
+## Flujo de ramas Git (por fase)
+
+Cada fase del roadmap se trabaja en su propia rama, nunca directo en `main`:
+
+```
+feature/fase-1-base-tecnica
+feature/fase-2-mapa-interactivo
+feature/fase-3-ficha-pais
+feature/fase-4-panel-admin
+feature/fase-5-accesibilidad
+feature/fase-6-despliegue
+```
+
+Merge a `main` con `--no-ff`, preferiblemente vía Pull Request, solo cuando la fase
+esté probada. Ver sección 9 de `plan-countryworld.md` para el detalle completo.
