@@ -41,6 +41,10 @@ new class extends Component
     ></div>
 </div>
 
+<style>
+    #world-map .leaflet-interactive:focus { outline: none; }
+</style>
+
 <script>
     const countriesByIso = JSON.parse(
         document.getElementById('world-map-countries').textContent
@@ -50,9 +54,12 @@ new class extends Component
     let geojsonLayer = null;
     let selectedContinentId = null;
 
-    const defaultStyle = { fillColor: '#4f46e5', weight: 1, color: '#ffffff', fillOpacity: 0.6 };
-    const dimmedStyle  = { fillColor: '#94a3b8', weight: 0.5, color: '#cbd5e1', fillOpacity: 0.15 };
-    const hoverStyle   = { fillColor: '#3730a3', weight: 2, color: '#ffffff', fillOpacity: 0.9 };
+    const defaultStyle  = { fillColor: '#4f46e5', weight: 1, color: '#ffffff', fillOpacity: 0.6 };
+    const dimmedStyle   = { fillColor: '#94a3b8', weight: 0.5, color: '#cbd5e1', fillOpacity: 0.15 };
+    const hoverStyle    = { fillColor: '#3730a3', weight: 2, color: '#ffffff', fillOpacity: 0.9 };
+    const selectedStyle = { fillColor: '#16a34a', weight: 2, color: '#ffffff', fillOpacity: 0.9 };
+
+    let selectedLayer = null;
 
     function styleForFeature(feature) {
         const country = countriesByIso[feature.id];
@@ -70,9 +77,11 @@ new class extends Component
             mouseover(e) {
                 if (!country) return;
                 if (selectedContinentId !== null && country.continentId !== selectedContinentId) return;
+                if (e.target === selectedLayer) return;
                 e.target.setStyle(hoverStyle);
             },
             mouseout(e) {
+                if (e.target === selectedLayer) return;
                 geojsonLayer.resetStyle(e.target);
                 if (selectedContinentId !== null) {
                     if (!country || country.continentId !== selectedContinentId) {
@@ -80,10 +89,19 @@ new class extends Component
                     }
                 }
             },
-            click() {
-                if (country) {
-                    $wire.$dispatch('country-selected', { countryId: country.id });
+            click(e) {
+                if (!country) return;
+                if (selectedLayer) {
+                    geojsonLayer.resetStyle(selectedLayer);
+                    const prevCountry = countriesByIso[selectedLayer.feature.id];
+                    if (selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                        selectedLayer.setStyle(dimmedStyle);
+                    }
                 }
+                selectedLayer = e.target;
+                e.target.setStyle(selectedStyle);
+                e.target.getElement()?.blur();
+                $wire.$dispatch('country-selected', { countryId: country.id, continentId: country.continentId });
             },
         });
 
@@ -102,7 +120,7 @@ new class extends Component
         zoomControl: true,
     });
 
-    fetch('/geojson/world-countries.json')
+    fetch('/geojson/world-countries.json?v={{ filemtime(public_path("geojson/world-countries.json")) }}')
         .then(r => r.json())
         .then(data => {
             geojsonLayer = L.geoJSON(data, {
@@ -111,9 +129,41 @@ new class extends Component
             }).addTo(map);
         });
 
-    // Continent filter: update map styles without a server roundtrip
+    // Country selected (from list or map click): highlight green and fly to it
+    Livewire.on('country-selected', ({ countryId }) => {
+        if (!geojsonLayer) return;
+        geojsonLayer.eachLayer(layer => {
+            if (!layer.feature) return;
+            const country = countriesByIso[layer.feature.id];
+            if (!country || country.id !== countryId) return;
+
+            // Reset previous selection
+            if (selectedLayer && selectedLayer !== layer) {
+                geojsonLayer.resetStyle(selectedLayer);
+                const prevCountry = countriesByIso[selectedLayer.feature.id];
+                if (selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                    selectedLayer.setStyle(dimmedStyle);
+                }
+            }
+
+            const alreadySelected = selectedLayer === layer;
+            selectedLayer = layer;
+            layer.setStyle(selectedStyle);
+            layer.getElement()?.blur();
+
+            if (!alreadySelected) {
+                try {
+                    map.flyToBounds(layer.getBounds(), { maxZoom: 7, padding: [40, 40], duration: 0.8 });
+                } catch (e) { /* layer may have no bounds (point feature) */ }
+            }
+        });
+    });
+
+    // Continent filter: reset view and update map styles without a server roundtrip
     Livewire.on('continent-selected', ({ continentId }) => {
         selectedContinentId = continentId ?? null;
+        selectedLayer = null;
+        map.flyTo([20, 0], 2, { duration: 0.8 });
         if (!geojsonLayer) return;
         geojsonLayer.eachLayer(layer => {
             if (!layer.feature) return;

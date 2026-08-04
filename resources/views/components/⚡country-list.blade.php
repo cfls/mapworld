@@ -67,7 +67,7 @@ new class extends Component
         @forelse ($this->countries as $country)
             <li>
                 <button
-                    wire:click="$dispatch('country-selected', { countryId: {{ $country->id }} })"
+                    wire:click="$dispatch('country-selected', { countryId: {{ $country->id }}, continentId: {{ $country->continent_id }} })"
                     class="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50
                            hover:text-indigo-700 rounded-lg transition-colors truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                     title="{{ $country->name }}"
