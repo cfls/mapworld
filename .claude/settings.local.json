@@ -17,7 +17,11 @@
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\layouts\")",
       "Bash(Out-Null)",
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\admin\")",
-      "Bash(Write-Host \"Directories created\")"
+      "Bash(Write-Host \"Directories created\")",
+      "Bash(Select-String -Path \"public\\\\geojson\\\\world-countries.json\" -Pattern '\"CPV\"')",
+      "Bash(Select-Object -First 3)",
+      "Bash(node *)",
+      "Bash(npm list *)"
     ]
   },
   "enabledMcpjsonServers": [

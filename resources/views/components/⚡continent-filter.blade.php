@@ -2,11 +2,18 @@
 
 use App\Models\Continent;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
     public ?int $selectedContinentId = null;
+
+    #[On('country-selected')]
+    public function syncFromCountry(int $countryId, ?int $continentId = null): void
+    {
+        $this->selectedContinentId = $continentId;
+    }
 
     #[Computed]
     public function continents()

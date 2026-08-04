@@ -20,6 +20,17 @@
             <h1 class="text-base font-bold text-indigo-700 tracking-tight">Les Pays du Monde</h1>
             <span class="text-slate-300 text-sm" aria-hidden="true">|</span>
             <p class="text-xs text-slate-500 hidden sm:block">Signes des pays du monde en LSFB et Signes Internationaux</p>
+
+            <a href="https://cfls.be/boutique/les-pays-du-monde"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="ml-auto flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" />
+                </svg>
+                <span class="hidden sm:inline">Commander le livre</span>
+                <span class="sm:hidden">Livre</span>
+            </a>
         </div>
     </header>
 
