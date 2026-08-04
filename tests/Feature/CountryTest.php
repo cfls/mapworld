@@ -35,10 +35,10 @@ test('country lsfb video relation returns only lsfb type', function () {
         ->and($country->internationalVideo->type)->toBe(SignVideoType::International);
 });
 
-test('seeder creates 195 countries across five continents', function () {
+test('seeder creates 196 countries across five continents', function () {
     $this->seed([ContinentSeeder::class, CountrySeeder::class]);
 
-    expect(Country::count())->toBe(195);
+    expect(Country::count())->toBe(196);
 });
 
 test('seeder countries have valid iso codes of length 3', function () {
