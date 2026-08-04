@@ -3,8 +3,27 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CountryWorld — Signes des pays du monde</title>
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    <title>Les Pays du Monde — Signes en LSFB et Signes Internationaux</title>
+    <meta name="description" content="Explorez les pays du monde avec des vidéos en LSFB et en Signes Internationaux pour chaque pays.">
+    <link rel="canonical" href="{{ url('/') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/cfls-logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/cfls-logo.png') }}">
+
+    <!-- Open Graph (Facebook, LinkedIn, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Les Pays du Monde — Signes en LSFB et Signes Internationaux">
+    <meta property="og:description" content="Explorez les pays du monde avec des vidéos en LSFB et en Signes Internationaux pour chaque pays.">
+    <meta property="og:image" content="{{ asset('images/cfls-logo.png') }}">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:locale" content="fr_BE">
+    <meta property="og:site_name" content="Les Pays du Monde">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Les Pays du Monde — Signes en LSFB et Signes Internationaux">
+    <meta name="twitter:description" content="Explorez les pays du monde avec des vidéos en LSFB et en Signes Internationaux pour chaque pays.">
+    <meta name="twitter:image" content="{{ asset('images/cfls-logo.png') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900">
