@@ -10,7 +10,14 @@
       "Bash(curl -sL \"https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson\" -o public/geojson/world-countries.json)",
       "Bash(curl -sL \"https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json\" -o public/geojson/world-countries.json)",
       "mcp__laravel-boost__last-error",
-      "mcp__laravel-boost__browser-logs"
+      "mcp__laravel-boost__browser-logs",
+      "Bash(findstr -i \"breeze\\\\|jetstream\\\\|cloudinary\\\\|sanctum\\\\|auth\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in {**d.get\\('require',{}\\), **d.get\\('require-dev',{}\\)}.items\\(\\)]\")",
+      "Bash(findstr \"make\")",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\layouts\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\admin\")",
+      "Bash(Write-Host \"Directories created\")"
     ]
   },
   "enabledMcpjsonServers": [
