@@ -66,6 +66,7 @@ class CountrySeeder extends Seeder
                 ['name' => 'Tchad', 'iso_code' => 'TCD', 'latitude' => 15.5, 'longitude' => 18.7],
                 ['name' => 'Togo', 'iso_code' => 'TGO', 'latitude' => 8.6, 'longitude' => 0.8],
                 ['name' => 'Tunisie', 'iso_code' => 'TUN', 'latitude' => 33.9, 'longitude' => 9.5],
+                ['name' => 'Afrique du Sud', 'iso_code' => 'ZAF', 'latitude' => -30.6, 'longitude' => 22.9],
                 ['name' => 'Zambie', 'iso_code' => 'ZMB', 'latitude' => -13.1, 'longitude' => 27.8],
                 ['name' => 'Zimbabwe', 'iso_code' => 'ZWE', 'latitude' => -19.0, 'longitude' => 29.2],
             ],

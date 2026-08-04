@@ -6,7 +6,11 @@
       "mcp__laravel-boost__search-docs",
       "Bash(php artisan *)",
       "mcp__laravel-boost__database-query",
-      "Bash(vendor/bin/pint *)"
+      "Bash(vendor/bin/pint *)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson\" -o public/geojson/world-countries.json)",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json\" -o public/geojson/world-countries.json)",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__browser-logs"
     ]
   },
   "enabledMcpjsonServers": [
