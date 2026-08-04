@@ -1,0 +1,127 @@
+<?php
+
+use App\Models\Country;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use Livewire\Component;
+
+new class extends Component
+{
+    public ?int $countryId = null;
+
+    #[On('country-selected')]
+    public function selectCountry(int $countryId): void
+    {
+        $this->countryId = $countryId;
+    }
+
+    #[Computed]
+    public function country(): ?Country
+    {
+        if (! $this->countryId) {
+            return null;
+        }
+
+        return Country::with(['continent', 'lsfbVideo', 'internationalVideo'])
+            ->find($this->countryId);
+    }
+};
+?>
+
+<div>
+    @if ($this->country)
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
+
+            {{-- Header --}}
+            <div class="bg-gradient-to-br from-indigo-600 to-indigo-500 px-5 py-4">
+                <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
+                    {{ $this->country->continent->name }}
+                </p>
+                <h2 class="text-white text-2xl font-bold leading-tight">
+                    {{ $this->country->name }}
+                </h2>
+                <span class="inline-block mt-1 text-xs font-mono text-indigo-300 bg-indigo-700/40 px-2 py-0.5 rounded">
+                    {{ $this->country->iso_code }}
+                </span>
+            </div>
+
+            <div class="p-4 space-y-5">
+
+                {{-- LSFB --}}
+                <div>
+                    <h3 class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                        LSFB
+                    </h3>
+
+                    @if ($this->country->lsfbVideo)
+                        <video
+                            class="w-full aspect-video rounded-lg bg-black"
+                            controls
+                            preload="metadata"
+                            @if ($this->country->lsfbVideo->thumbnail_url)
+                                poster="{{ $this->country->lsfbVideo->thumbnail_url }}"
+                            @endif
+                        >
+                            <source src="{{ $this->country->lsfbVideo->cloudinary_url }}" type="video/mp4">
+                        </video>
+                    @else
+                        <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                            <span class="text-3xl">🤟</span>
+                            <p class="text-xs text-slate-400 font-medium text-center px-4">
+                                Vidéo LSFB pas encore disponible
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Signes Internationaux --}}
+                <div>
+                    <h3 class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        <span class="w-2 h-2 rounded-full bg-violet-500 inline-block"></span>
+                        Signes Internationaux
+                    </h3>
+
+                    @if ($this->country->internationalVideo)
+                        <video
+                            class="w-full aspect-video rounded-lg bg-black"
+                            controls
+                            preload="metadata"
+                            @if ($this->country->internationalVideo->thumbnail_url)
+                                poster="{{ $this->country->internationalVideo->thumbnail_url }}"
+                            @endif
+                        >
+                            <source src="{{ $this->country->internationalVideo->cloudinary_url }}" type="video/mp4">
+                        </video>
+                    @else
+                        <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                            <span class="text-3xl">🌐</span>
+                            <p class="text-xs text-slate-400 font-medium text-center px-4">
+                                Vidéo en Signes Internationaux pas encore disponible
+                            </p>
+                        </div>
+                    @endif
+                </div>
+
+            </div>
+        </div>
+
+    @else
+        {{-- Empty state --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-3 h-full min-h-[280px] px-8 text-center">
+            <span class="text-5xl opacity-60">🗺️</span>
+            <div>
+                <p class="text-slate-600 font-semibold">Sélectionnez un pays</p>
+                <p class="text-slate-400 text-sm mt-1 leading-relaxed">
+                    Cliquez sur un pays dans la carte<br>ou dans la liste ci-dessous.
+                </p>
+            </div>
+        </div>
+    @endif
+</div>
+
+<script>
+    Livewire.on('country-selected', () => {
+        this.$el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+</script>

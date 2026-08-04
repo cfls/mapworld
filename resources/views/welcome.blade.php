@@ -14,16 +14,26 @@
             <span class="text-xl">🌍</span>
             <h1 class="text-base font-bold text-indigo-700 tracking-tight">CountryWorld</h1>
             <span class="text-slate-300 text-sm">|</span>
-            <p class="text-xs text-slate-500">Signes des pays du monde en LSFB et Signes Internationaux</p>
+            <p class="text-xs text-slate-500 hidden sm:block">Signes des pays du monde en LSFB et Signes Internationaux</p>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
 
+        {{-- Filtro de continentes --}}
         <livewire:continent-filter />
 
-        <livewire:world-map />
+        {{-- Mapa (izquierda) + Ficha de país (derecha) --}}
+        <div class="flex flex-col lg:flex-row gap-4 items-start">
+            <div class="w-full lg:w-2/3">
+                <livewire:world-map />
+            </div>
+            <div class="w-full lg:w-1/3 lg:sticky lg:top-20">
+                <livewire:country-detail />
+            </div>
+        </div>
 
+        {{-- Lista de países --}}
         <livewire:country-list />
 
     </main>
