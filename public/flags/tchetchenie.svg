@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+
+<rect width="1200" height="650" y="0" fill="#009639"/>
+<rect width="1200" height="70" y="650" fill="#fff"/>
+<rect width="1200" height="80" y="720" fill="#CE1126"/>
+<rect width="110" height="800" x="0" fill="#fff"/>
+<path d="M20 0 V800 M55 0 V800 M90 0 V800" stroke="#D4AF37" stroke-width="10" stroke-dasharray="18 18"/>
+
+</svg>

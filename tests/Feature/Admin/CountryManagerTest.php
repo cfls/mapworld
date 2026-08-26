@@ -36,7 +36,7 @@ test('country manager can create a new country', function () {
         ->call('save')
         ->assertSee('créé avec succès');
 
-    expect(Country::where('iso_code', 'LUX')->exists())->toBeTrue();
+    expect(Country::where('iso3', 'LUX')->exists())->toBeTrue();
 });
 
 test('country manager validates required fields', function () {
@@ -46,13 +46,13 @@ test('country manager validates required fields', function () {
         ->test('admin.country-manager')
         ->call('startCreate')
         ->call('save')
-        ->assertHasErrors(['name', 'isoCode', 'continentId']);
+        ->assertHasErrors(['name', 'continentId']);
 });
 
 test('country manager validates iso code uniqueness', function () {
     $user = User::factory()->create();
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'iso_code' => 'LUX']);
+    Country::factory()->create(['continent_id' => $continent->id, 'iso3' => 'LUX']);
 
     Livewire::actingAs($user)
         ->test('admin.country-manager')
@@ -67,7 +67,7 @@ test('country manager validates iso code uniqueness', function () {
 test('country manager can edit an existing country', function () {
     $user = User::factory()->create();
     $continent = Continent::factory()->create();
-    $country = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
+    $country = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
 
     Livewire::actingAs($user)
         ->test('admin.country-manager')
@@ -96,8 +96,8 @@ test('country manager can delete a country', function () {
 test('country manager can search countries by name', function () {
     $user = User::factory()->create();
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso_code' => 'FRA']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso3' => 'FRA']);
 
     Livewire::actingAs($user)
         ->test('admin.country-manager')
@@ -110,8 +110,8 @@ test('country manager can filter by continent', function () {
     $user = User::factory()->create();
     $europe = Continent::factory()->create(['name' => 'Europe']);
     $africa = Continent::factory()->create(['name' => 'Afrique']);
-    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    Country::factory()->create(['continent_id' => $africa->id, 'name' => 'Maroc', 'iso_code' => 'MAR']);
+    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
+    Country::factory()->create(['continent_id' => $africa->id, 'name' => 'Maroc', 'iso3' => 'MAR']);
 
     Livewire::actingAs($user)
         ->test('admin.country-manager')

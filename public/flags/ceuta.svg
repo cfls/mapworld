@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+
+<rect width="1200" height="800" fill="#fff"/>
+<polygon points="0,0 600,400 0,400" fill="#000"/>
+<polygon points="0,800 600,400 0,400" fill="#fff"/>
+<polygon points="1200,0 600,400 1200,400" fill="#fff"/>
+<polygon points="1200,800 600,400 1200,400" fill="#000"/>
+<polygon points="0,0 600,400 600,0" fill="#fff"/>
+<polygon points="1200,0 600,400 600,0" fill="#000"/>
+<polygon points="0,800 600,400 600,800" fill="#000"/>
+<polygon points="1200,800 600,400 600,800" fill="#fff"/>
+<ellipse cx="600" cy="400" rx="95" ry="120" fill="#fff" stroke="#D4AF37" stroke-width="10"/>
+<rect x="555" y="335" width="90" height="120" rx="8" fill="#D4142A"/>
+<circle cx="600" cy="395" r="32" fill="#fff"/>
+
+</svg>

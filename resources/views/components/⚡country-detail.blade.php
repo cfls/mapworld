@@ -15,6 +15,12 @@ new class extends Component
         $this->countryId = $countryId;
     }
 
+    #[On('map-reset')]
+    public function resetSelection(): void
+    {
+        $this->countryId = null;
+    }
+
     #[Computed]
     public function country(): ?Country
     {
@@ -32,6 +38,7 @@ new class extends Component
     aria-live="polite"
     aria-atomic="true"
     aria-label="Fiche du pays sélectionné"
+    class="scroll-mt-16"
 >
     @if ($this->country)
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
@@ -41,12 +48,29 @@ new class extends Component
                 <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
                     {{ $this->country->continent->name }}
                 </p>
-                <h2 class="text-white text-2xl font-bold leading-tight">
-                    {{ $this->country->name }}
+                <h2 class="text-white text-2xl font-bold leading-tight flex items-center gap-2">
+                    @if ($this->country->flag_path)
+                        <img
+                            src="{{ asset($this->country->flag_path) }}"
+                            alt=""
+                            aria-hidden="true"
+                            class="h-6 w-auto rounded-sm shadow-sm"
+                        >
+                    @elseif ($this->country->iso2)
+                        <img
+                            src="https://flagcdn.com/32x24/{{ strtolower($this->country->iso2) }}.png"
+                            alt=""
+                            aria-hidden="true"
+                            class="h-6 w-auto rounded-sm shadow-sm"
+                        >
+                    @endif
+                    <span>{{ $this->country->name }}</span>
                 </h2>
-                <span class="inline-block mt-1 text-xs font-mono text-indigo-300 bg-indigo-700/40 px-2 py-0.5 rounded">
-                    {{ $this->country->iso_code }}
-                </span>
+                @if ($this->country->iso3)
+                    <span class="inline-block mt-1 text-xs font-mono text-indigo-300 bg-indigo-700/40 px-2 py-0.5 rounded">
+                        {{ $this->country->iso3 }}
+                    </span>
+                @endif
             </div>
 
             <div class="p-4 space-y-5">

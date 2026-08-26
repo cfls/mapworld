@@ -18,7 +18,8 @@ test('country detail shows country name and iso code after event', function () {
     $country = Country::factory()->create([
         'continent_id' => $continent->id,
         'name' => 'Belgique',
-        'iso_code' => 'BEL',
+        'iso3' => 'BEL',
+        'iso2' => 'BE',
     ]);
 
     Livewire::test('country-detail')
@@ -70,8 +71,8 @@ test('country detail renders international video player when video exists', func
 
 test('country detail updates when a different country is selected', function () {
     $continent = Continent::factory()->create();
-    $belgium = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    $france = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso_code' => 'FRA']);
+    $belgium = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL', 'iso2' => 'BE']);
+    $france = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso3' => 'FRA', 'iso2' => 'FR']);
 
     Livewire::test('country-detail')
         ->dispatch('country-selected', countryId: $belgium->id)

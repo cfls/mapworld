@@ -9,8 +9,8 @@ uses(RefreshDatabase::class);
 
 test('country list shows all countries by default', function () {
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso_code' => 'FRA']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso3' => 'FRA']);
 
     Livewire::test('country-list')
         ->assertSee('Belgique')
@@ -19,8 +19,8 @@ test('country list shows all countries by default', function () {
 
 test('country list search filters by name', function () {
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso_code' => 'FRA']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'France', 'iso3' => 'FRA']);
 
     Livewire::test('country-list')
         ->set('search', 'Belg')
@@ -30,7 +30,7 @@ test('country list search filters by name', function () {
 
 test('country list search shows empty state when no match', function () {
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
 
     Livewire::test('country-list')
         ->set('search', 'zzzzz')
@@ -39,7 +39,7 @@ test('country list search shows empty state when no match', function () {
 
 test('country list search resets when continent filter changes', function () {
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
+    Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
 
     Livewire::test('country-list')
         ->set('search', 'Belg')
@@ -50,9 +50,9 @@ test('country list search resets when continent filter changes', function () {
 test('country list search and continent filter combine', function () {
     $europe = Continent::factory()->create(['name' => 'Europe']);
     $africa = Continent::factory()->create(['name' => 'Afrique']);
-    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'Belgique', 'iso_code' => 'BEL']);
-    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'France', 'iso_code' => 'FRA']);
-    Country::factory()->create(['continent_id' => $africa->id, 'name' => 'Maroc', 'iso_code' => 'MAR']);
+    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'Belgique', 'iso3' => 'BEL']);
+    Country::factory()->create(['continent_id' => $europe->id, 'name' => 'France', 'iso3' => 'FRA']);
+    Country::factory()->create(['continent_id' => $africa->id, 'name' => 'Maroc', 'iso3' => 'MAR']);
 
     Livewire::test('country-list')
         ->dispatch('continent-selected', continentId: $europe->id)

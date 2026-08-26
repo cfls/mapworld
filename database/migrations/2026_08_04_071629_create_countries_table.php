@@ -15,11 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('continent_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('iso_code', 3)->unique();
+            $table->char('iso2', 2)->nullable()->unique();
+            $table->char('iso3', 3)->nullable()->unique();
             $table->string('flag_path')->nullable();
             $table->decimal('latitude', 10, 6)->nullable();
             $table->decimal('longitude', 10, 6)->nullable();
             $table->string('slug')->unique();
+            $table->string('video_lsfb')->nullable();
+            $table->string('video_int')->nullable();
             $table->timestamps();
         });
     }

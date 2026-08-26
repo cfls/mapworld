@@ -142,7 +142,7 @@ new class extends Component
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-slate-900">
             Vidéos — <span class="text-indigo-700">{{ $this->country->name }}</span>
-            <span class="text-slate-400 font-mono text-base ml-2">{{ $this->country->iso_code }}</span>
+            <span class="text-slate-400 font-mono text-base ml-2">{{ $this->country->iso3 }}</span>
         </h2>
     </div>
 
