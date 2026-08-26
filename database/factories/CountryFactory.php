@@ -19,11 +19,14 @@ class CountryFactory extends Factory
         return [
             'continent_id' => Continent::factory(),
             'name' => $name,
-            'iso_code' => strtoupper($this->faker->unique()->lexify('???')),
+            'iso2' => strtoupper($this->faker->unique()->lexify('??')),
+            'iso3' => strtoupper($this->faker->unique()->lexify('???')),
             'flag_path' => null,
             'latitude' => $this->faker->latitude(),
             'longitude' => $this->faker->longitude(),
             'slug' => Str::slug($name),
+            'video_lsfb' => null,
+            'video_int' => null,
         ];
     }
 }

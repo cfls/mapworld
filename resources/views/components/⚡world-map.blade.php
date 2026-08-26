@@ -2,43 +2,75 @@
 
 use App\Models\Country;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
 {
+    #[On('map-reset')]
+    public function mapReset(): void {}
+
     #[Computed]
     public function countriesByIso(): array
     {
-        return Country::select('id', 'iso_code', 'continent_id', 'name')
+        return Country::select('id', 'iso3', 'continent_id', 'name')
+            ->whereNotNull('iso3')
             ->get()
-            ->keyBy('iso_code')
+            ->keyBy('iso3')
             ->map(fn ($c) => ['id' => $c->id, 'continentId' => $c->continent_id, 'name' => $c->name])
+            ->all();
+    }
+
+    #[Computed]
+    public function countriesById(): array
+    {
+        return Country::select('id', 'latitude', 'longitude')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get()
+            ->keyBy('id')
+            ->map(fn ($c) => ['lat' => (float) $c->latitude, 'lng' => (float) $c->longitude])
             ->all();
     }
 };
 ?>
 
 <div>
-    {{-- JSON data carrier: read once by the script on mount --}}
+    {{-- JSON data carriers: read once by the script on mount --}}
     <script type="application/json" id="world-map-countries">{!! json_encode($this->countriesByIso) !!}</script>
+    <script type="application/json" id="world-map-coords">{!! json_encode($this->countriesById) !!}</script>
 
     <p class="sr-only">
         Carte mondiale interactive. Cliquez sur un pays pour afficher ses vidéos en langue des signes.
         Vous pouvez également utiliser la barre de recherche et la liste des pays ci-dessous.
     </p>
 
-    <div
-        wire:ignore
-        id="world-map"
-        role="application"
-        aria-label="Carte mondiale interactive — sélectionnez un pays"
-        class="w-full rounded-xl shadow-md
-               h-[300px]
-               sm:h-[400px]
-               md:h-[500px]
-               lg:h-[650px]
-               xl:h-[750px]"
-    ></div>
+    <div class="relative">
+        <div
+            wire:ignore
+            id="world-map"
+            role="application"
+            aria-label="Carte mondiale interactive — sélectionnez un pays"
+            class="w-full rounded-xl shadow-md
+                   h-[300px]
+                   sm:h-[400px]
+                   md:h-[500px]
+                   lg:h-[650px]
+                   xl:h-[750px]"
+        ></div>
+
+        <button
+            id="map-reset-btn"
+            type="button"
+            class="hidden absolute top-3 right-3 z-[1000] flex items-center gap-1.5 bg-white/90 hover:bg-white text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg shadow-md border border-slate-200 transition-colors"
+            aria-label="Réinitialiser la carte — vue globale"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+            Vue globale
+        </button>
+    </div>
 </div>
 
 <style>
@@ -49,6 +81,15 @@ new class extends Component
     const countriesByIso = JSON.parse(
         document.getElementById('world-map-countries').textContent
     );
+    const countriesById = JSON.parse(
+        document.getElementById('world-map-coords').textContent
+    );
+
+    const resetBtn = document.getElementById('map-reset-btn');
+    const showResetBtn = () => resetBtn?.classList.remove('hidden');
+    const hideResetBtn = () => resetBtn?.classList.add('hidden');
+
+    resetBtn?.addEventListener('click', () => Livewire.dispatch('map-reset'));
 
     let map = null;
     let geojsonLayer = null;
@@ -98,9 +139,16 @@ new class extends Component
                         selectedLayer.setStyle(dimmedStyle);
                     }
                 }
+                const alreadySelected = selectedLayer === e.target;
                 selectedLayer = e.target;
                 e.target.setStyle(selectedStyle);
                 e.target.getElement()?.blur();
+                if (!alreadySelected) {
+                    try {
+                        map.flyToBounds(e.target.getBounds(), { maxZoom: 7, padding: [40, 40], duration: 0.8 });
+                    } catch (_) {}
+                }
+                showResetBtn();
                 $wire.$dispatch('country-selected', { countryId: country.id, continentId: country.continentId });
             },
         });
@@ -132,10 +180,13 @@ new class extends Component
     // Country selected (from list or map click): highlight green and fly to it
     Livewire.on('country-selected', ({ countryId }) => {
         if (!geojsonLayer) return;
+        let layerFound = false;
         geojsonLayer.eachLayer(layer => {
             if (!layer.feature) return;
             const country = countriesByIso[layer.feature.id];
             if (!country || country.id !== countryId) return;
+
+            layerFound = true;
 
             // Reset previous selection
             if (selectedLayer && selectedLayer !== layer) {
@@ -157,6 +208,24 @@ new class extends Component
                 } catch (e) { /* layer may have no bounds (point feature) */ }
             }
         });
+
+        showResetBtn();
+
+        // Territory without GeoJSON polygon (no iso3): fly to stored coordinates
+        if (!layerFound) {
+            if (selectedLayer) {
+                geojsonLayer.resetStyle(selectedLayer);
+                const prevCountry = countriesByIso[selectedLayer.feature.id];
+                if (selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                    selectedLayer.setStyle(dimmedStyle);
+                }
+                selectedLayer = null;
+            }
+            const coords = countriesById[countryId];
+            if (coords) {
+                map.flyTo([coords.lat, coords.lng], 7, { duration: 0.8 });
+            }
+        }
     });
 
     // Continent filter: reset view and update map styles without a server roundtrip
@@ -176,6 +245,20 @@ new class extends Component
                 layer.setStyle(dimmedStyle);
             }
         });
+    });
+
+    // Reset: fly back to world view, clear selection, hide button
+    Livewire.on('map-reset', () => {
+        map.flyTo([20, 0], 2, { duration: 0.8 });
+        if (selectedLayer && geojsonLayer) {
+            geojsonLayer.resetStyle(selectedLayer);
+            const prevCountry = countriesByIso[selectedLayer.feature.id];
+            if (selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                selectedLayer.setStyle(dimmedStyle);
+            }
+            selectedLayer = null;
+        }
+        hideResetBtn();
     });
 
     window.addEventListener('resize', () => map?.invalidateSize());

@@ -18,11 +18,19 @@ test('country belongs to a continent', function () {
     expect($country->continent->id)->toBe($continent->id);
 });
 
-test('country iso_code is unique', function () {
+test('country iso2 is unique', function () {
     $continent = Continent::factory()->create();
-    Country::factory()->create(['continent_id' => $continent->id, 'iso_code' => 'FRA']);
+    Country::factory()->create(['continent_id' => $continent->id, 'iso2' => 'BE']);
 
-    expect(fn () => Country::factory()->create(['continent_id' => $continent->id, 'iso_code' => 'FRA']))
+    expect(fn () => Country::factory()->create(['continent_id' => $continent->id, 'iso2' => 'BE']))
+        ->toThrow(QueryException::class);
+});
+
+test('country iso3 is unique', function () {
+    $continent = Continent::factory()->create();
+    Country::factory()->create(['continent_id' => $continent->id, 'iso3' => 'BEL']);
+
+    expect(fn () => Country::factory()->create(['continent_id' => $continent->id, 'iso3' => 'BEL']))
         ->toThrow(QueryException::class);
 });
 
@@ -35,25 +43,47 @@ test('country lsfb video relation returns only lsfb type', function () {
         ->and($country->internationalVideo->type)->toBe(SignVideoType::International);
 });
 
+test('flag accessor generates emoji from iso2', function () {
+    $country = Country::factory()->make(['iso2' => 'BE', 'flag_path' => null]);
+
+    expect($country->flag)->toBe('🇧🇪');
+});
+
+test('flag accessor returns null when iso2 is null', function () {
+    $country = Country::factory()->make(['iso2' => null, 'flag_path' => null]);
+
+    expect($country->flag)->toBeNull();
+});
+
+test('flag accessor does not throw when both iso2 and flag_path are null', function () {
+    $country = Country::factory()->make(['iso2' => null, 'flag_path' => null]);
+
+    expect(fn () => $country->flag)->not->toThrow(Throwable::class);
+});
+
 test('seeder creates 196 countries across five continents', function () {
     $this->seed([ContinentSeeder::class, CountrySeeder::class]);
 
     expect(Country::count())->toBe(196);
 });
 
-test('seeder countries have valid iso codes of length 3', function () {
+test('seeder countries have valid iso3 codes of length 3', function () {
     $this->seed([ContinentSeeder::class, CountrySeeder::class]);
 
-    $invalid = Country::whereRaw('LENGTH(iso_code) != 3')->count();
+    $invalid = Country::whereNotNull('iso3')->whereRaw('LENGTH(iso3) != 3')->count();
 
     expect($invalid)->toBe(0);
 });
 
-test('all country iso codes are unique', function () {
+test('all country iso3 codes are unique', function () {
     $this->seed([ContinentSeeder::class, CountrySeeder::class]);
 
-    $total = Country::count();
-    $unique = Country::distinct()->count('iso_code');
+    $total = Country::whereNotNull('iso3')->count();
+    $unique = Country::whereNotNull('iso3')->distinct()->count('iso3');
 
     expect($unique)->toBe($total);
+});
+
+test('country does not use iso_code field', function () {
+    expect(Country::factory()->make()->toArray())->not->toHaveKey('iso_code');
 });

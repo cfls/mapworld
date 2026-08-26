@@ -28,6 +28,8 @@ new class extends Component
 
     public string $isoCode = '';
 
+    public string $iso2 = '';
+
     public ?int $continentId = null;
 
     public string $latitude = '';
@@ -50,7 +52,7 @@ new class extends Component
     {
         return Country::with(['continent', 'lsfbVideo', 'internationalVideo'])
             ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
-                ->orWhere('iso_code', 'like', "%{$this->search}%"))
+                ->orWhere('iso3', 'like', "%{$this->search}%"))
             ->when($this->filterContinentId, fn ($q) => $q->where('continent_id', $this->filterContinentId))
             ->orderBy('name')
             ->paginate(20);
@@ -80,7 +82,8 @@ new class extends Component
     {
         $country = Country::findOrFail($id);
         $this->name = $country->name;
-        $this->isoCode = $country->iso_code;
+        $this->isoCode = $country->iso3 ?? '';
+        $this->iso2 = $country->iso2 ?? '';
         $this->continentId = $country->continent_id;
         $this->latitude = $country->latitude !== null ? (string) $country->latitude : '';
         $this->longitude = $country->longitude !== null ? (string) $country->longitude : '';
@@ -92,28 +95,45 @@ new class extends Component
     public function save(): void
     {
         $this->isoCode = strtoupper(trim($this->isoCode));
+        $this->iso2 = strtoupper(trim($this->iso2));
 
         $this->validate([
             'name' => 'required|string|max:100',
-            'isoCode' => 'required|string|size:3|alpha',
+            'isoCode' => 'nullable|string|size:3|alpha',
+            'iso2' => 'nullable|string|size:2|alpha',
             'continentId' => 'required|exists:continents,id',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
-        $isoExists = Country::where('iso_code', $this->isoCode)
-            ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))
-            ->exists();
+        if ($this->isoCode) {
+            $isoExists = Country::where('iso3', $this->isoCode)
+                ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))
+                ->exists();
 
-        if ($isoExists) {
-            $this->addError('isoCode', 'Ce code ISO existe déjà.');
+            if ($isoExists) {
+                $this->addError('isoCode', 'Ce code ISO 3 existe déjà.');
 
-            return;
+                return;
+            }
+        }
+
+        if ($this->iso2) {
+            $iso2Exists = Country::where('iso2', $this->iso2)
+                ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId))
+                ->exists();
+
+            if ($iso2Exists) {
+                $this->addError('iso2', 'Ce code ISO 2 existe déjà.');
+
+                return;
+            }
         }
 
         $data = [
             'name' => trim($this->name),
-            'iso_code' => $this->isoCode,
+            'iso3' => $this->isoCode ?: null,
+            'iso2' => $this->iso2 ?: null,
             'continent_id' => $this->continentId,
             'slug' => Str::slug(trim($this->name)),
             'latitude' => $this->latitude !== '' ? (float) $this->latitude : null,
@@ -163,6 +183,7 @@ new class extends Component
     {
         $this->name = '';
         $this->isoCode = '';
+        $this->iso2 = '';
         $this->continentId = null;
         $this->latitude = '';
         $this->longitude = '';
@@ -199,16 +220,43 @@ new class extends Component
                     @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Code ISO (3 lettres)</label>
-                    <input
-                        type="text"
-                        wire:model="isoCode"
-                        maxlength="3"
-                        class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="BEL"
-                    >
-                    @error('isoCode') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Code ISO 3</label>
+                        <input
+                            type="text"
+                            wire:model="isoCode"
+                            maxlength="3"
+                            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="BEL"
+                        >
+                        @error('isoCode') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            Code ISO 2
+                            <span class="ml-1 text-slate-400 font-normal">(drapeau)</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                wire:model.live="iso2"
+                                maxlength="2"
+                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="BE"
+                            >
+                            @if (strlen($iso2) === 2)
+                                <img
+                                    src="https://flagcdn.com/32x24/{{ strtolower($iso2) }}.png"
+                                    alt=""
+                                    aria-hidden="true"
+                                    class="h-6 w-auto rounded-sm shrink-0 shadow-sm"
+                                    title="Aperçu du drapeau"
+                                >
+                            @endif
+                        </div>
+                        @error('iso2') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 <div>
@@ -328,8 +376,17 @@ new class extends Component
                     <tbody class="divide-y divide-slate-100">
                         @forelse($this->countries as $country)
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-4 py-3 font-medium text-slate-900">{{ $country->name }}</td>
-                                <td class="px-4 py-3 font-mono text-slate-500 text-xs">{{ $country->iso_code }}</td>
+                                <td class="px-4 py-3 font-medium text-slate-900">
+                                    <span class="flex items-center gap-2">
+                                        @if ($country->flag_path)
+                                            <img src="{{ asset($country->flag_path) }}" alt="" aria-hidden="true" class="h-4 w-auto rounded-sm">
+                                        @elseif ($country->iso2)
+                                            <img src="https://flagcdn.com/20x15/{{ strtolower($country->iso2) }}.png" alt="" aria-hidden="true" class="h-4 w-auto rounded-sm">
+                                        @endif
+                                        {{ $country->name }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 font-mono text-slate-500 text-xs">{{ $country->iso3 }}</td>
                                 <td class="px-4 py-3 text-slate-600 hidden sm:table-cell">{{ $country->continent->name }}</td>
                                 <td class="px-3 py-3 text-center">
                                     @if ($country->lsfbVideo)
