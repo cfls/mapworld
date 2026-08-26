@@ -65,17 +65,22 @@
         </div>
     </header>
 
-    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[3.75rem] pb-5 space-y-4">
+    {{-- Continent filter bar: fixed just below the header --}}
+    <div class="fixed top-14 left-0 right-0 z-[999] bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <livewire:continent-filter />
+        </div>
+    </div>
 
-        {{-- Filtro de continentes --}}
-        <livewire:continent-filter />
+    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[6.5rem] pb-5 space-y-4">
 
         {{-- Mapa (izquierda) + Ficha de país (derecha) --}}
+
         <div class="flex flex-col lg:flex-row gap-4 items-start">
             <div class="w-full lg:w-2/3">
                 <livewire:world-map />
             </div>
-            <div class="w-full lg:w-1/3 lg:sticky lg:top-20">
+            <div class="w-full lg:w-1/3 lg:sticky lg:top-28">
                 <livewire:country-detail />
             </div>
         </div>
