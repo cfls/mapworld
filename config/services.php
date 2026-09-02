@@ -41,4 +41,9 @@ return [
         'api_secret' => env('CLOUDINARY_API_SECRET'),
     ],
 
+    'restcountries' => [
+        'url' => env('RESTCOUNTRIES_API_URL'),
+        'key' => env('RESTCOUNTRIES_API'),
+    ],
+
 ];

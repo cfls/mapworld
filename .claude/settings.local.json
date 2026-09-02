@@ -37,7 +37,8 @@
       "Bash(ls *)",
       "Bash(curl -sL \"https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_geography_marine_polys.geojson\" -o \"public/geojson/world-oceans.json\")",
       "Bash(Get-ChildItem \"public/build/assets\" -Filter \"*.css\")",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(git stash *)"
     ]
   },
   "enabledMcpjsonServers": [
