@@ -98,15 +98,16 @@ new class extends Component
         let selectedContinentId = null;
         let selectedLayer = null;
 
-        const defaultStyle  = { fillColor: '#4f46e5', weight: 1, color: '#ffffff', fillOpacity: 0.6 };
-        const dimmedStyle   = { fillColor: '#94a3b8', weight: 0.5, color: '#cbd5e1', fillOpacity: 0.15 };
-        const hoverStyle    = { fillColor: '#3730a3', weight: 2, color: '#ffffff', fillOpacity: 0.9 };
-        const selectedStyle = { fillColor: '#16a34a', weight: 2, color: '#ffffff', fillOpacity: 0.9 };
+        const defaultStyle     = { fillColor: '#4f46e5', weight: 0, fillOpacity: 0.35, opacity: 1 };
+        const dimmedStyle      = { fillColor: '#94a3b8', weight: 0, fillOpacity: 0.08, opacity: 1 };
+        const hoverStyle       = { fillColor: '#3730a3', weight: 0, fillOpacity: 0.55, opacity: 1 };
+        const selectedStyle    = { fillColor: '#16a34a', weight: 0, fillOpacity: 0.65, opacity: 1 };
+        const transparentStyle = { fillColor: '#000000', weight: 0,   color: '#000000', fillOpacity: 0,    opacity: 0 };
 
         function styleForFeature(feature) {
             const country = countriesByIso[feature.id];
             if (selectedContinentId === null) {
-                return country ? defaultStyle : dimmedStyle;
+                return transparentStyle;
             }
             if (!country) return dimmedStyle;
             return country.continentId === selectedContinentId ? defaultStyle : dimmedStyle;
@@ -167,6 +168,10 @@ new class extends Component
             worldCopyJump: true,
             zoomControl: false,
         });
+
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        }).addTo(map);
 
         document.getElementById('map-zoom-in')?.addEventListener('click', () => map.zoomIn());
         document.getElementById('map-zoom-out')?.addEventListener('click', () => map.zoomOut());
@@ -238,7 +243,7 @@ new class extends Component
                 if (!layer.feature) return;
                 const country = countriesByIso[layer.feature.id];
                 if (selectedContinentId === null) {
-                    layer.setStyle(country ? defaultStyle : dimmedStyle);
+                    layer.setStyle(transparentStyle);
                 } else if (country && country.continentId === selectedContinentId) {
                     layer.setStyle(defaultStyle);
                 } else {

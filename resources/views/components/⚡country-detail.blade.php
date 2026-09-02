@@ -64,14 +64,14 @@ new class extends Component
                             src="{{ asset($this->country->flag_path) }}"
                             alt=""
                             aria-hidden="true"
-                            class="h-6 w-auto rounded-sm shadow-sm"
+                            class="h-10 w-auto rounded shadow-sm"
                         >
                     @elseif ($this->country->iso2)
                         <img
-                            src="https://flagcdn.com/32x24/{{ strtolower($this->country->iso2) }}.png"
+                            src="https://flagcdn.com/64x48/{{ strtolower($this->country->iso2) }}.png"
                             alt=""
                             aria-hidden="true"
-                            class="h-6 w-auto rounded-sm shadow-sm"
+                            class="h-10 w-auto rounded shadow-sm"
                         >
                     @endif
                     <span>{{ $this->country->name }}</span>
@@ -215,7 +215,7 @@ new class extends Component
                 >
                     <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
-                        <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signes Internationaux</h3>
+                        <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
                     </div>
 
                     @if ($this->country->internationalVideo)
@@ -259,11 +259,11 @@ new class extends Component
                         <div
                             class="w-full aspect-video bg-slate-50 flex flex-col items-center justify-center gap-2"
                             role="img"
-                            aria-label="Vidéo en Signes Internationaux pas encore disponible pour {{ $this->country->name }}"
+                            aria-label="Vidéo en Signe International pas encore disponible pour {{ $this->country->name }}"
                         >
                             <span class="text-3xl" aria-hidden="true">🌐</span>
                             <p class="text-xs text-slate-400 font-medium text-center px-4">
-                                Vidéo en Signes Internationaux pas encore disponible
+                                Vidéo en Signe International pas encore disponible
                             </p>
                         </div>
                     @endif

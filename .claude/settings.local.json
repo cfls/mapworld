@@ -30,7 +30,8 @@
       "Bash(composer require *)",
       "Skill(livewire-development)",
       "Skill(frontend-design)",
-      "Bash(php *)"
+      "Bash(php *)",
+      "PowerShell(Get-Item *)"
     ]
   },
   "enabledMcpjsonServers": [

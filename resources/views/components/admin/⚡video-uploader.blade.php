@@ -300,7 +300,7 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
                 </div>
             @else
                 <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mb-4">
-                    <p class="text-xs text-slate-400">Pas de vidéo en Signes Internationaux</p>
+                    <p class="text-xs text-slate-400">Pas de vidéo en Signe International</p>
                 </div>
             @endif
 
