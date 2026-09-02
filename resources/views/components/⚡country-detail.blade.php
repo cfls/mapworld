@@ -217,7 +217,7 @@ new class extends Component
                             @if ($info->languages)
                                 <div class="flex items-center gap-3 px-4 py-2.5">
                                     <dt class="text-xs text-slate-400 w-24 shrink-0">Langue(s)</dt>
-                                    <dd class="text-sm text-slate-800">{{ implode(', ', $info->languages) }}</dd>
+                                    <dd class="text-sm text-slate-800">{{ implode(', ', array_column($info->languages, 'name')) }}</dd>
                                 </div>
                             @endif
                             @if ($info->population !== null)
@@ -353,10 +353,3 @@ new class extends Component
     @endif
 </div>
 
-@script
-<script>
-    $wire.on('country-selected', () => {
-        $el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-</script>
-@endscript
