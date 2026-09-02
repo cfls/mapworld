@@ -29,7 +29,8 @@
       "WebFetch(domain:leafletjs.com)",
       "Bash(composer require *)",
       "Skill(livewire-development)",
-      "Skill(frontend-design)"
+      "Skill(frontend-design)",
+      "Bash(php *)"
     ]
   },
   "enabledMcpjsonServers": [
