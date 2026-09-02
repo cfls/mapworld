@@ -82,6 +82,13 @@ class ImportCloudinaryVideos extends Command
                 continue;
             }
 
+            if (in_array($rawName, self::REGIONAL_ENTRIES, strict: true)) {
+                $this->line("  SKIP (entrée régionale) : {$publicId}");
+                $skipped++;
+
+                continue;
+            }
+
             $country = $this->findCountry($rawName);
 
             if (! $country) {
@@ -150,6 +157,19 @@ class ImportCloudinaryVideos extends Command
 
         return [$rawName, $type];
     }
+
+    /**
+     * Regional entries to skip — these are sign-language videos for a whole
+     * region, not a specific country, so they have no row in countries.
+     *
+     * @var list<string>
+     */
+    private const REGIONAL_ENTRIES = [
+        'Amérique',
+        'Amérique Du Nord',
+        'Amérique Centrale',
+        'Amérique Du Sud',
+    ];
 
     /**
      * Known name mismatches between Cloudinary filenames and DB country names.
