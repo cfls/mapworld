@@ -117,7 +117,7 @@
 
         {{-- Pays panel --}}
         <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak>
-            <div class="flex flex-col lg:flex-row gap-4 items-start scroll-mt-28">
+            <div id="map-section" class="flex flex-col lg:flex-row gap-4 items-start scroll-mt-28">
                 <div class="w-full lg:w-2/3">
                     <livewire:world-map />
                 </div>
