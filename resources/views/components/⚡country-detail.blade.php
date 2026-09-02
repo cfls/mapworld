@@ -111,21 +111,40 @@ new class extends Component
                                 x-cloak
                             >
                                 @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                                    <div x-show="current === {{ $index }}">
+                                    <div x-show="current === {{ $index }}" x-data="{ frozen: false }" class="relative aspect-video bg-black">
                                         <video
-                                            class="w-full aspect-video bg-black"
+                                            class="absolute inset-0 w-full h-full object-contain"
                                             controls
                                             autoplay
                                             muted
                                             loop
+                                            playsinline
                                             preload="metadata"
                                             aria-label="Vidéo LSFB {{ $index + 1 }} — {{ $this->country->name }}"
+                                            x-on:stalled="frozen = true"
+                                            x-on:error="frozen = true"
+                                            x-on:playing="frozen = false"
                                             @if ($lsfbVideo->thumbnail_url)
                                                 poster="{{ $lsfbVideo->thumbnail_url }}"
                                             @endif
                                         >
                                             <source src="{{ $lsfbVideo->cloudinary_url }}" type="video/mp4">
                                         </video>
+                                        <div
+                                            x-show="frozen"
+                                            x-cloak
+                                            class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3"
+                                        >
+                                            <svg class="w-8 h-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                            </svg>
+                                            <button
+                                                @click="frozen = false; $root.querySelector('video').load(); $root.querySelector('video').play();"
+                                                class="px-4 py-2 rounded-lg bg-white text-slate-800 text-sm font-semibold hover:bg-slate-100 transition-colors"
+                                            >
+                                                Relancer la vidéo
+                                            </button>
+                                        </div>
                                     </div>
                                 @endforeach
 
@@ -145,12 +164,12 @@ new class extends Component
                                         @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
                                             <button
                                                 @click="goTo({{ $index }})"
-                                                :class="current === {{ $index }} ? 'bg-indigo-500 w-4' : 'bg-slate-300 w-2'"
-                                                class="h-2 rounded-full transition-all duration-200"
+                                                :class="current === {{ $index }} ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'"
+                                                class="w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center"
                                                 role="tab"
                                                 :aria-selected="current === {{ $index }}"
                                                 aria-label="Vidéo LSFB {{ $index + 1 }}"
-                                            ></button>
+                                            >{{ $index + 1 }}</button>
                                         @endforeach
                                     </div>
 
@@ -168,15 +187,16 @@ new class extends Component
                         @else
                             {{-- Single video, no carousel --}}
                             @php $lsfbVideo = $this->country->lsfbVideos->first(); @endphp
-                            <div class="relative" x-data="{ frozen: false }">
+                            <div class="relative aspect-video bg-black" x-data="{ frozen: false }">
                                 <video
                                     x-ref="video"
                                     wire:key="lsfb-video-{{ $this->country->id }}"
-                                    class="w-full aspect-video bg-black"
+                                    class="absolute inset-0 w-full h-full object-contain"
                                     controls
                                     autoplay
                                     muted
                                     loop
+                                    playsinline
                                     preload="metadata"
                                     aria-label="Vidéo LSFB — {{ $this->country->name }}"
                                     x-on:stalled="frozen = true"
@@ -219,15 +239,16 @@ new class extends Component
                     </div>
 
                     @if ($this->country->internationalVideo)
-                        <div class="relative" x-data="{ frozen: false }">
+                        <div class="relative aspect-video bg-black" x-data="{ frozen: false }">
                             <video
                                 x-ref="video"
                                 wire:key="int-video-{{ $this->country->id }}"
-                                class="w-full aspect-video bg-black"
+                                class="absolute inset-0 w-full h-full object-contain"
                                 controls
                                 autoplay
                                 muted
                                 loop
+                                playsinline
                                 preload="metadata"
                                 aria-label="Vidéo en Signes Internationaux — {{ $this->country->name }}"
                                 x-on:stalled="frozen = true"
@@ -320,16 +341,19 @@ new class extends Component
                             </svg>
                         </button>
                     </div>
-                    <video
-                        x-ref="regionVideo"
-                        class="w-full aspect-video bg-black"
-                        controls
-                        muted
-                        loop
-                        preload="metadata"
-                        :src="videoUrl"
-                        :aria-label="videoTitle"
-                    ></video>
+                    <div class="relative aspect-video bg-black">
+                        <video
+                            x-ref="regionVideo"
+                            class="absolute inset-0 w-full h-full object-contain"
+                            controls
+                            muted
+                            loop
+                            playsinline
+                            preload="metadata"
+                            :src="videoUrl"
+                            :aria-label="videoTitle"
+                        ></video>
+                    </div>
                 </div>
 
                 {{-- Cards de región --}}
