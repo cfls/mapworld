@@ -28,7 +28,7 @@ new class extends Component
             return null;
         }
 
-        return Country::with(['continent', 'lsfbVideo', 'internationalVideo'])
+        return Country::with(['continent', 'lsfbVideos', 'internationalVideo'])
             ->find($this->countryId);
     }
 };
@@ -82,18 +82,27 @@ new class extends Component
                         LSFB
                     </h3>
 
-                    @if ($this->country->lsfbVideo)
-                        <video
-                            class="w-full aspect-video rounded-lg bg-black"
-                            controls
-                            preload="metadata"
-                            aria-label="Vidéo LSFB — {{ $this->country->name }}"
-                            @if ($this->country->lsfbVideo->thumbnail_url)
-                                poster="{{ $this->country->lsfbVideo->thumbnail_url }}"
-                            @endif
-                        >
-                            <source src="{{ $this->country->lsfbVideo->cloudinary_url }}" type="video/mp4">
-                        </video>
+                    @if ($this->country->lsfbVideos->isNotEmpty())
+                        <div class="space-y-3">
+                            @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
+                                <div>
+                                    @if ($this->country->lsfbVideos->count() > 1)
+                                        <p class="text-xs text-slate-400 font-medium mb-1">Vidéo {{ $index + 1 }}</p>
+                                    @endif
+                                    <video
+                                        class="w-full aspect-video rounded-lg bg-black"
+                                        controls
+                                        preload="metadata"
+                                        aria-label="Vidéo LSFB {{ $this->country->lsfbVideos->count() > 1 ? ($index + 1).' ' : '' }}— {{ $this->country->name }}"
+                                        @if ($lsfbVideo->thumbnail_url)
+                                            poster="{{ $lsfbVideo->thumbnail_url }}"
+                                        @endif
+                                    >
+                                        <source src="{{ $lsfbVideo->cloudinary_url }}" type="video/mp4">
+                                    </video>
+                                </div>
+                            @endforeach
+                        </div>
                     @else
                         <div
                             class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2"

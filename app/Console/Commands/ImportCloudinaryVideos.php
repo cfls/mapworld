@@ -38,9 +38,15 @@ class ImportCloudinaryVideos extends Command
 
         $root = $this->option('root');
         $dryRun = $this->option('dry-run');
+        $force = $this->option('force');
 
         if ($dryRun) {
             $this->warn('[DRY RUN] No changes will be saved.');
+        }
+
+        if ($force && ! $dryRun) {
+            SignVideo::truncate();
+            $this->warn('Table sign_videos vidée (--force).');
         }
 
         $subfolders = $this->listSubfolders($root);
@@ -62,7 +68,6 @@ class ImportCloudinaryVideos extends Command
 
         $imported = 0;
         $skipped = 0;
-        $duplicates = [];
         $notFound = [];
 
         foreach ($resources as $resource) {
@@ -87,20 +92,14 @@ class ImportCloudinaryVideos extends Command
             }
 
             $label = $type === SignVideoType::International ? 'INT' : 'LSF';
-
-            // Warn when a numbered duplicate is being processed
-            if (preg_match('/\s\d+$/', $rawName)) {
-                $duplicates[] = $publicId;
-                $this->warn("  [{$label}] DOUBLON numéroté «{$rawName}» → {$country->name}");
-            } else {
-                $this->line("  [{$label}] «{$rawName}» → {$country->name} (id={$country->id})");
-            }
+            $this->line("  [{$label}] «{$publicId}» → {$country->name} (id={$country->id})");
 
             if (! $dryRun) {
                 SignVideo::updateOrCreate(
-                    ['country_id' => $country->id, 'type' => $type],
+                    ['cloudinary_public_id' => $publicId],
                     [
-                        'cloudinary_public_id' => $publicId,
+                        'country_id' => $country->id,
+                        'type' => $type,
                         'cloudinary_url' => $resource['secure_url'],
                         'thumbnail_url' => $this->thumbnailUrl($publicId),
                         'duration_seconds' => isset($resource['duration'])
@@ -114,12 +113,6 @@ class ImportCloudinaryVideos extends Command
         }
 
         $this->newLine();
-
-        if ($duplicates) {
-            $this->warn('Doublons numérotés : le dernier traité (numéro le plus élevé) est conservé.');
-            $this->warn('  '.implode(', ', $duplicates));
-            $this->newLine();
-        }
 
         if ($notFound) {
             $this->warn(count($notFound).' entrée(s) non trouvée(s) dans la base de données :');
