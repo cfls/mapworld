@@ -83,9 +83,10 @@ new class extends Component
                 @endif
             </div>
 
-            <div class="p-4 space-y-4">
+            <div class="p-4 space-y-6">
 
                 {{-- LSFB Card --}}
+                @if ($this->country->lsfbVideos->isNotEmpty())
                 <section
                     aria-labelledby="lsfb-heading"
                     class="rounded-lg border border-slate-200 overflow-hidden"
@@ -95,18 +96,7 @@ new class extends Component
                         <h3 id="lsfb-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</h3>
                     </div>
 
-                    @if ($this->country->lsfbVideos->isEmpty())
-                        <div
-                            class="w-full aspect-video bg-slate-50 flex flex-col items-center justify-center gap-2"
-                            role="img"
-                            aria-label="Vidéo LSFB pas encore disponible pour {{ $this->country->name }}"
-                        >
-                            <span class="text-3xl" aria-hidden="true">🤟</span>
-                            <p class="text-xs text-slate-400 font-medium text-center px-4">
-                                Vidéo LSFB pas encore disponible
-                            </p>
-                        </div>
-                    @elseif ($this->country->lsfbVideos->count() > 1)
+                    @if ($this->country->lsfbVideos->count() > 1)
                             {{-- Carousel --}}
                             <div
                                 wire:key="lsfb-carousel-{{ $this->country->id }}"
@@ -173,6 +163,7 @@ new class extends Component
                             />
                         @endif
                 </section>
+                @endif
 
                 {{-- Signes Internationaux Card --}}
                 <section

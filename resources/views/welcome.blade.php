@@ -125,7 +125,9 @@
                     <livewire:country-detail />
                 </div>
             </div>
-            <livewire:country-list />
+            <div class="mt-4">
+                <livewire:country-list />
+            </div>
         </div>
 
         {{-- Mers et océans panel --}}

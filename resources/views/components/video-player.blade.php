@@ -9,18 +9,17 @@
     class="relative aspect-video bg-black"
     x-data="{ frozen: false }"
     wire:key="{{ $wireKey }}"
+    x-init="$nextTick(() => { $refs.video.load(); $refs.video.play().catch(() => {}); })"
 >
     <video
         x-ref="video"
         class="absolute inset-0 w-full h-full object-contain"
         controls
-        autoplay
         muted
         loop
         playsinline
         preload="metadata"
         aria-label="{{ $label }}"
-        x-on:stalled="frozen = true"
         x-on:error="frozen = true"
         x-on:playing="frozen = false"
         @if ($thumbnail) poster="{{ $thumbnail }}" @endif
