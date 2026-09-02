@@ -177,9 +177,10 @@ antes de trabajar en cualquier fase.
   `Bresil`, `Congo (RDC)`, etc.). No implementar multilenguaje/i18n.
 - **Continentes**: exactamente estos 5, en francés: `Afrique`, `Amerique`, `Asie`,
   `Europe`, `Oceanie`.
-- **Videos**: se almacenan en **Cloudinary** (paquete `cloudinary-labs/cloudinary-laravel`),
-  nunca en storage local ni en S3. Cada país tiene como máximo un video `lsfb` y uno
-  `international` (constraint único en `sign_videos`).
+- **Videos**: se almacenan en **Cloudinary**, nunca en storage local ni en S3. Cada país
+  tiene como máximo un video `lsfb` y uno `international` (constraint único en `sign_videos`).
+  **No usar** `cloudinary-labs/cloudinary-laravel` — no soporta Laravel 13. Usar la
+  HTTP facade de Laravel para llamar directamente a la Cloudinary Admin API REST.
 - **Mapa**: Leaflet, contenedor `w-full` y responsive por breakpoint (mobile/tablet/desktop).
   El cruce país↔GeoJSON se hace por `iso_code` (ISO 3166-1 alpha-3), no por nombre.
 - **Livewire**: el proyecto tiene instalado **Livewire v4** (Boost lo detectó así). El
@@ -202,3 +203,71 @@ feature/fase-6-despliegue
 
 Merge a `main` con `--no-ff`, preferiblemente vía Pull Request, solo cuando la fase
 esté probada. Ver sección 9 de `plan-countryworld.md` para el detalle completo.
+
+## Importación de videos desde Cloudinary
+
+Comando: `php artisan cloudinary:import-videos`
+
+Archivos relevantes: `app/Console/Commands/ImportCloudinaryVideos.php`
+
+### Estructura en Cloudinary
+
+Los videos están organizados en subcarpetas de **`Pays du monde/`**:
+
+```
+Pays du monde/
+  AMÈRIQUE/     ← 67 videos — importados en sept 2026
+  AFRIQUE/      ← pendiente
+  ASIE/         ← pendiente
+  EUROPE/       ← pendiente
+  OCEANIE/      ← pendiente
+```
+
+El comando autodescubre las subcarpetas, de modo que al agregar un nuevo continente
+basta con crearlo en Cloudinary y volver a ejecutar el comando.
+
+### Formato de nombre de los archivos
+
+```
+{NombrePais}_{Tipo}_{sufijo6chars}
+```
+
+- `Tipo` = `Int` (Internacional) o `B` (LSFB)
+- Espacios del nombre → guiones bajos: `Trinité_Et_Tobago_Int_karphq`
+- Doublons numerados: `Cuba_1_B_xxx`, `Cuba_2_B_xxx` → el número más alto gana
+
+### Aliases de nombres conocidos
+
+Diferencias entre nombre Cloudinary y nombre en la tabla `countries`:
+
+| Cloudinary       | DB (`countries.name`) |
+|------------------|-----------------------|
+| Puerto Rico      | Porto Rico            |
+| Trinité Et Tobago | Trinité-et-Tobago    |
+| Sainte Lucie     | Sainte-Lucie          |
+
+Si al importar un nuevo continente hay países no encontrados, agregar el alias en
+`NAME_ALIASES` dentro de `ImportCloudinaryVideos.php`.
+
+### Procedimiento para importar un nuevo continente
+
+1. Subir los videos a Cloudinary en `Pays du monde/{CONTINENTE}/` con el formato
+   `{NombrePais}_{Int|B}_{sufijo}.mp4`.
+2. Ejecutar primero el dry-run para verificar coincidencias:
+   ```bash
+   php artisan cloudinary:import-videos --dry-run
+   ```
+3. Revisar los "no encontrados" en el output. Si hay países legítimos sin match,
+   agregarlos a `NAME_ALIASES` en el comando.
+4. Ejecutar la importación real:
+   ```bash
+   php artisan cloudinary:import-videos
+   ```
+
+### Países pendientes de agregar a la DB
+
+- **Curaçao** — existe video en Cloudinary (`Curaçao_Int_p3yio9`) pero no hay
+  entrada en la tabla `countries`. Crear el registro antes de reimportar.
+- Entradas regionales (`Amérique`, `Amérique Du Nord`, `Amérique Centrale`,
+  `Amérique Du Sud`) — son videos de lengua de señas regional, no de país. Decidir
+  si se modelan como países especiales o se gestionan de otra manera.

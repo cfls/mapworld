@@ -57,6 +57,11 @@ class Country extends Model
         return $this->hasOne(SignVideo::class)->where('type', SignVideoType::Lsfb->value);
     }
 
+    public function lsfbVideos(): HasMany
+    {
+        return $this->hasMany(SignVideo::class)->where('type', SignVideoType::Lsfb->value)->orderBy('cloudinary_public_id');
+    }
+
     public function internationalVideo(): HasOne
     {
         return $this->hasOne(SignVideo::class)->where('type', SignVideoType::International->value);

@@ -33,12 +33,14 @@ new class extends Component
         $this->cloudinaryConfigured = app(CloudinaryService::class)->isConfigured();
     }
 
+    /** @return \Illuminate\Database\Eloquent\Collection<int, SignVideo> */
     #[Computed]
-    public function lsfbVideo(): ?SignVideo
+    public function lsfbVideos(): \Illuminate\Database\Eloquent\Collection
     {
         return SignVideo::where('country_id', $this->country->id)
             ->where('type', SignVideoType::Lsfb->value)
-            ->first();
+            ->orderBy('cloudinary_public_id')
+            ->get();
     }
 
     #[Computed]
@@ -60,7 +62,7 @@ new class extends Component
 
         $this->uploadVideo(SignVideoType::Lsfb, $this->lsfbFile);
         $this->lsfbFile = null;
-        unset($this->lsfbVideo);
+        unset($this->lsfbVideos);
     }
 
     public function uploadInternational(): void
@@ -92,7 +94,7 @@ new class extends Component
         $video->delete();
 
         if ($type === SignVideoType::Lsfb) {
-            unset($this->lsfbVideo);
+            unset($this->lsfbVideos);
         } else {
             unset($this->internationalVideo);
         }
@@ -105,15 +107,26 @@ new class extends Component
         try {
             $result = app(CloudinaryService::class)->uploadVideo($file->getPathname());
 
-            SignVideo::updateOrCreate(
-                ['country_id' => $this->country->id, 'type' => $type->value],
-                [
+            if ($type === SignVideoType::International) {
+                SignVideo::updateOrCreate(
+                    ['country_id' => $this->country->id, 'type' => $type->value],
+                    [
+                        'cloudinary_public_id' => $result['public_id'],
+                        'cloudinary_url' => $result['secure_url'],
+                        'thumbnail_url' => $result['thumbnail_url'],
+                        'duration_seconds' => $result['duration'] ? (int) $result['duration'] : null,
+                    ]
+                );
+            } else {
+                SignVideo::create([
+                    'country_id' => $this->country->id,
+                    'type' => $type->value,
                     'cloudinary_public_id' => $result['public_id'],
                     'cloudinary_url' => $result['secure_url'],
                     'thumbnail_url' => $result['thumbnail_url'],
                     'duration_seconds' => $result['duration'] ? (int) $result['duration'] : null,
-                ]
-            );
+                ]);
+            }
 
             $this->successMessage = 'Vidéo téléchargée avec succès.';
         } catch (\Throwable $e) {
@@ -179,30 +192,42 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
             <div class="flex items-center gap-2 mb-4">
                 <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
                 <h3 class="font-semibold text-slate-900">LSFB</h3>
+                @if ($this->lsfbVideos->count() > 0)
+                    <span class="text-xs text-slate-400 font-normal">({{ $this->lsfbVideos->count() }} vidéo{{ $this->lsfbVideos->count() > 1 ? 's' : '' }})</span>
+                @endif
             </div>
 
-            @if ($this->lsfbVideo)
-                <video
-                    class="w-full aspect-video rounded-lg bg-black mb-3"
-                    controls
-                    preload="metadata"
-                    @if ($this->lsfbVideo->thumbnail_url)
-                        poster="{{ $this->lsfbVideo->thumbnail_url }}"
-                    @endif
-                >
-                    <source src="{{ $this->lsfbVideo->cloudinary_url }}" type="video/mp4">
-                </video>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-xs text-slate-400 font-mono truncate max-w-[200px]" title="{{ $this->lsfbVideo->cloudinary_public_id }}">
-                        {{ $this->lsfbVideo->cloudinary_public_id }}
-                    </span>
-                    <button
-                        wire:click="deleteVideo({{ $this->lsfbVideo->id }})"
-                        wire:confirm="Supprimer cette vidéo LSFB ?"
-                        class="text-xs text-red-500 hover:text-red-700 font-medium ml-2 shrink-0"
-                    >
-                        Supprimer
-                    </button>
+            @if ($this->lsfbVideos->isNotEmpty())
+                <div class="space-y-4 mb-4">
+                    @foreach ($this->lsfbVideos as $index => $lsfbVideo)
+                        <div>
+                            @if ($this->lsfbVideos->count() > 1)
+                                <p class="text-xs text-slate-500 font-medium mb-1">Vidéo {{ $index + 1 }}</p>
+                            @endif
+                            <video
+                                class="w-full aspect-video rounded-lg bg-black mb-2"
+                                controls
+                                preload="metadata"
+                                @if ($lsfbVideo->thumbnail_url)
+                                    poster="{{ $lsfbVideo->thumbnail_url }}"
+                                @endif
+                            >
+                                <source src="{{ $lsfbVideo->cloudinary_url }}" type="video/mp4">
+                            </video>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-400 font-mono truncate max-w-[200px]" title="{{ $lsfbVideo->cloudinary_public_id }}">
+                                    {{ $lsfbVideo->cloudinary_public_id }}
+                                </span>
+                                <button
+                                    wire:click="deleteVideo({{ $lsfbVideo->id }})"
+                                    wire:confirm="Supprimer cette vidéo LSFB ?"
+                                    class="text-xs text-red-500 hover:text-red-700 font-medium ml-2 shrink-0"
+                                >
+                                    Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             @else
                 <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mb-4">
@@ -214,7 +239,7 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1.5">
-                            {{ $this->lsfbVideo ? 'Remplacer la vidéo' : 'Choisir une vidéo' }}
+                            Ajouter une vidéo LSFB
                         </label>
                         <input
                             type="file"
@@ -275,7 +300,7 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
                 </div>
             @else
                 <div class="w-full aspect-video rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center mb-4">
-                    <p class="text-xs text-slate-400">Pas de vidéo en Signes Internationaux</p>
+                    <p class="text-xs text-slate-400">Pas de vidéo en Signe International</p>
                 </div>
             @endif
 

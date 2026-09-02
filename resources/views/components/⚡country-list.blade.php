@@ -82,3 +82,11 @@ new class extends Component
         @endforelse
     </ul>
 </div>
+
+@script
+<script>
+    window.addEventListener('country-selected', () => {
+        document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+</script>
+@endscript

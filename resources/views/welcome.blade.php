@@ -34,10 +34,10 @@
     </a>
 
     <header role="banner" class="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-[1000]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3">
+        <div class="w-full px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3">
             <img src="/images/cfls-logo.png" alt="CFLS" class="h-10 w-auto">
-            <h1 class="text-base font-bold text-indigo-700 tracking-tight">Les Pays du Monde</h1>
-            <span class="text-slate-300 text-sm" aria-hidden="true">|</span>
+            <h1 class="hidden sm:block text-base font-bold text-indigo-700 tracking-tight">Les Pays du Monde</h1>
+            <span class="hidden sm:block text-slate-300 text-sm" aria-hidden="true">|</span>
             <p class="text-xs text-slate-500 hidden sm:block">Signes des pays du monde en LSFB et Signes Internationaux</p>
 
             <div class="ml-auto flex items-center gap-2">
@@ -67,16 +67,16 @@
 
     {{-- Continent filter bar: fixed just below the header --}}
     <div class="fixed top-14 left-0 right-0 z-[999] bg-white border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-2">
             <livewire:continent-filter />
         </div>
     </div>
 
-    <main id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[6.5rem] pb-5 space-y-4">
+    <main id="main-content" class="w-full px-4 sm:px-6 lg:px-8 pt-[6.5rem] pb-5 space-y-4">
 
         {{-- Mapa (izquierda) + Ficha de país (derecha) --}}
 
-        <div class="flex flex-col lg:flex-row gap-4 items-start">
+        <div id="map-section" class="flex flex-col lg:flex-row gap-4 items-start scroll-mt-28">
             <div class="w-full lg:w-2/3">
                 <livewire:world-map />
             </div>

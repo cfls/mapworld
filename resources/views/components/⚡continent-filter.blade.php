@@ -24,7 +24,8 @@ new class extends Component
     public function selectContinent(?int $continentId): void
     {
         $this->selectedContinentId = $continentId;
-        $this->dispatch('continent-selected', continentId: $continentId);
+        $continent = $continentId ? Continent::find($continentId) : null;
+        $this->dispatch('continent-selected', continentId: $continentId, continentName: $continent?->name);
     }
 };
 ?>
@@ -35,7 +36,7 @@ new class extends Component
     class="flex flex-wrap gap-2"
     x-data="{
         handleKey(e) {
-            const btns = [...$el.querySelectorAll('button')];
+            const btns = [...$el.querySelectorAll(':scope > button')];
             const idx = btns.indexOf(document.activeElement);
             if (e.key === 'ArrowRight' && idx < btns.length - 1) { e.preventDefault(); btns[idx + 1].focus(); }
             if (e.key === 'ArrowLeft'  && idx > 0)               { e.preventDefault(); btns[idx - 1].focus(); }

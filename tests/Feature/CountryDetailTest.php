@@ -42,7 +42,7 @@ test('country detail shows international fallback when no video uploaded', funct
 
     Livewire::test('country-detail')
         ->dispatch('country-selected', countryId: $country->id)
-        ->assertSee('Vidéo en Signes Internationaux pas encore disponible');
+        ->assertSee('Vidéo en Signe International pas encore disponible');
 });
 
 test('country detail renders lsfb video player when video exists', function () {
