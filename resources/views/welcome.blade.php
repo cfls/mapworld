@@ -26,7 +26,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-900">
+<body class="bg-slate-50 min-h-screen text-slate-900" x-data="{ mapMode: 'pays' }">
 
     <a href="#main-content"
        class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-indigo-700 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
@@ -65,28 +65,80 @@
         </div>
     </header>
 
-    {{-- Continent filter bar: fixed just below the header --}}
-    <div class="fixed top-14 left-0 right-0 z-[999] bg-white border-b border-slate-200">
+    {{-- Continent filter: only visible in "pays" mode --}}
+    <div
+        class="fixed top-14 left-0 right-0 z-[999] bg-white border-b border-slate-200"
+        x-show="mapMode === 'pays'"
+        x-cloak
+    >
         <div class="w-full px-4 sm:px-6 lg:px-8 py-2">
             <livewire:continent-filter />
         </div>
     </div>
 
-    <main id="main-content" class="w-full px-4 sm:px-6 lg:px-8 pt-[6.5rem] pb-5 space-y-4">
-
-        {{-- Mapa (izquierda) + Ficha de país (derecha) --}}
-
-        <div id="map-section" class="flex flex-col lg:flex-row gap-4 items-start scroll-mt-28">
-            <div class="w-full lg:w-2/3">
-                <livewire:world-map />
-            </div>
-            <div class="w-full lg:w-1/3 lg:sticky lg:top-28">
-                <livewire:country-detail />
-            </div>
+    <main
+        id="main-content"
+        class="w-full px-4 sm:px-6 lg:px-8 pb-5 space-y-4"
+        :class="mapMode === 'pays' ? 'pt-[6.5rem]' : 'pt-[4.5rem]'"
+    >
+        {{-- Mode selector --}}
+        <div class="flex items-center gap-1 bg-white rounded-xl border border-slate-200 p-1 w-fit shadow-sm" role="tablist" aria-label="Mode de carte">
+            <button
+                @click="mapMode = 'pays'"
+                :class="mapMode === 'pays'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                role="tab"
+                :aria-selected="mapMode === 'pays'"
+                aria-controls="panel-pays"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
+                </svg>
+                Pays
+            </button>
+            <button
+                @click="mapMode = 'mers'"
+                :class="mapMode === 'mers'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                role="tab"
+                :aria-selected="mapMode === 'mers'"
+                aria-controls="panel-mers"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Mers et océans
+            </button>
         </div>
 
-        {{-- Lista de países --}}
-        <livewire:country-list />
+        {{-- Pays panel --}}
+        <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak>
+            <div class="flex flex-col lg:flex-row gap-4 items-start scroll-mt-28">
+                <div class="w-full lg:w-2/3">
+                    <livewire:world-map />
+                </div>
+                <div class="w-full lg:w-1/3 lg:sticky lg:top-28">
+                    <livewire:country-detail />
+                </div>
+            </div>
+            <livewire:country-list />
+        </div>
+
+        {{-- Mers et océans panel --}}
+        <div id="panel-mers" x-show="mapMode === 'mers'" x-cloak>
+            <div class="flex flex-col lg:flex-row gap-4 items-start">
+                <div class="w-full lg:w-2/3">
+                    <livewire:ocean-map />
+                </div>
+                <div class="w-full lg:w-1/3 lg:sticky lg:top-20">
+                    <livewire:ocean-detail />
+                </div>
+            </div>
+        </div>
 
     </main>
 

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ContinentSeeder::class,
             CountrySeeder::class,
+            MarineAreaSeeder::class,
             AdminUserSeeder::class,
         ]);
     }

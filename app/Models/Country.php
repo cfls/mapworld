@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Country extends Model
 {
@@ -42,28 +43,37 @@ class Country extends Model
         });
     }
 
+    public function info(): HasOne
+    {
+        return $this->hasOne(CountryInfo::class);
+    }
+
     public function continent(): BelongsTo
     {
         return $this->belongsTo(Continent::class);
     }
 
-    public function signVideos(): HasMany
+    public function signVideos(): MorphMany
     {
-        return $this->hasMany(SignVideo::class);
+        return $this->morphMany(SignVideo::class, 'signable');
     }
 
-    public function lsfbVideo(): HasOne
+    public function lsfbVideo(): MorphOne
     {
-        return $this->hasOne(SignVideo::class)->where('type', SignVideoType::Lsfb->value);
+        return $this->morphOne(SignVideo::class, 'signable')
+            ->where('type', SignVideoType::Lsfb->value);
     }
 
-    public function lsfbVideos(): HasMany
+    public function lsfbVideos(): MorphMany
     {
-        return $this->hasMany(SignVideo::class)->where('type', SignVideoType::Lsfb->value)->orderBy('cloudinary_public_id');
+        return $this->morphMany(SignVideo::class, 'signable')
+            ->where('type', SignVideoType::Lsfb->value)
+            ->orderBy('cloudinary_public_id');
     }
 
-    public function internationalVideo(): HasOne
+    public function internationalVideo(): MorphOne
     {
-        return $this->hasOne(SignVideo::class)->where('type', SignVideoType::International->value);
+        return $this->morphOne(SignVideo::class, 'signable')
+            ->where('type', SignVideoType::International->value);
     }
 }
