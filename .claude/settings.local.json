@@ -27,7 +27,9 @@
       "Skill(laravel-best-practices)",
       "Bash(./vendor/bin/pint *)",
       "WebFetch(domain:leafletjs.com)",
-      "Bash(composer require *)"
+      "Bash(composer require *)",
+      "Skill(livewire-development)",
+      "Skill(frontend-design)"
     ]
   },
   "enabledMcpjsonServers": [
