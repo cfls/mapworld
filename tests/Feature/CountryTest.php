@@ -36,8 +36,8 @@ test('country iso3 is unique', function () {
 
 test('country lsfb video relation returns only lsfb type', function () {
     $country = Country::factory()->create();
-    SignVideo::factory()->lsfb()->create(['country_id' => $country->id]);
-    SignVideo::factory()->international()->create(['country_id' => $country->id]);
+    SignVideo::factory()->lsfb()->forCountry($country)->create();
+    SignVideo::factory()->international()->forCountry($country)->create();
 
     expect($country->lsfbVideo->type)->toBe(SignVideoType::Lsfb)
         ->and($country->internationalVideo->type)->toBe(SignVideoType::International);

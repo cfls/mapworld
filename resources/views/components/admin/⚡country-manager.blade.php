@@ -2,6 +2,7 @@
 
 use App\Models\Continent;
 use App\Models\Country;
+use App\Models\CountryInfo;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -35,6 +36,17 @@ new class extends Component
     public string $latitude = '';
 
     public string $longitude = '';
+
+    // Info fields
+    public string $capital = '';
+
+    public string $languagesRaw = '';
+
+    public string $population = '';
+
+    public string $currency = '';
+
+    public string $populationYear = '';
 
     // Delete
     public ?int $confirmingDeleteId = null;
@@ -80,13 +92,21 @@ new class extends Component
 
     public function startEdit(int $id): void
     {
-        $country = Country::findOrFail($id);
+        $country = Country::with('info')->findOrFail($id);
         $this->name = $country->name;
         $this->isoCode = $country->iso3 ?? '';
         $this->iso2 = $country->iso2 ?? '';
         $this->continentId = $country->continent_id;
         $this->latitude = $country->latitude !== null ? (string) $country->latitude : '';
         $this->longitude = $country->longitude !== null ? (string) $country->longitude : '';
+
+        $info = $country->info;
+        $this->capital = $info?->capital ?? '';
+        $this->languagesRaw = $info?->languages ? implode(', ', $info->languages) : '';
+        $this->population = $info?->population !== null ? (string) $info->population : '';
+        $this->currency = $info?->currency ?? '';
+        $this->populationYear = $info?->population_year !== null ? (string) $info->population_year : '';
+
         $this->editingId = $id;
         $this->showForm = true;
         $this->successMessage = '';
@@ -104,6 +124,11 @@ new class extends Component
             'continentId' => 'required|exists:continents,id',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'capital' => 'nullable|string|max:100',
+            'languagesRaw' => 'nullable|string|max:255',
+            'population' => 'nullable|integer|min:0',
+            'currency' => 'nullable|string|max:100',
+            'populationYear' => 'nullable|integer|min:1900|max:2100',
         ]);
 
         if ($this->isoCode) {
@@ -140,11 +165,38 @@ new class extends Component
             'longitude' => $this->longitude !== '' ? (float) $this->longitude : null,
         ];
 
+        $languages = $this->languagesRaw !== ''
+            ? array_values(array_filter(array_map('trim', explode(',', $this->languagesRaw))))
+            : null;
+
+        $infoData = [
+            'capital' => $this->capital !== '' ? trim($this->capital) : null,
+            'languages' => $languages,
+            'population' => $this->population !== '' ? (int) $this->population : null,
+            'currency' => $this->currency !== '' ? trim($this->currency) : null,
+            'population_year' => $this->populationYear !== '' ? (int) $this->populationYear : null,
+        ];
+
+        $hasInfo = collect($infoData)->filter()->isNotEmpty();
+
         if ($this->editingId) {
-            Country::findOrFail($this->editingId)->update($data);
+            $country = Country::findOrFail($this->editingId);
+            $country->update($data);
+
+            if ($hasInfo) {
+                $country->info()->updateOrCreate([], $infoData);
+            } else {
+                $country->info()->delete();
+            }
+
             $this->successMessage = 'Pays mis à jour avec succès.';
         } else {
-            Country::create($data);
+            $country = Country::create($data);
+
+            if ($hasInfo) {
+                $country->info()->create($infoData);
+            }
+
             $this->successMessage = 'Pays créé avec succès.';
         }
 
@@ -187,6 +239,11 @@ new class extends Component
         $this->continentId = null;
         $this->latitude = '';
         $this->longitude = '';
+        $this->capital = '';
+        $this->languagesRaw = '';
+        $this->population = '';
+        $this->currency = '';
+        $this->populationYear = '';
         $this->confirmingDeleteId = null;
         $this->resetValidation();
     }
@@ -299,6 +356,75 @@ new class extends Component
                             placeholder="4.3517"
                         >
                         @error('longitude') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                {{-- Fiche informative --}}
+                <div class="pt-2 border-t border-slate-200">
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Informations complémentaires</p>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Capitale</label>
+                            <input
+                                type="text"
+                                wire:model="capital"
+                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Bruxelles"
+                            >
+                            @error('capital') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Langue(s)
+                                <span class="ml-1 text-slate-400 font-normal">(séparées par des virgules)</span>
+                            </label>
+                            <input
+                                type="text"
+                                wire:model="languagesRaw"
+                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Français, Néerlandais, Allemand"
+                            >
+                            @error('languagesRaw') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Population</label>
+                                <input
+                                    type="number"
+                                    wire:model="population"
+                                    min="0"
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="11600000"
+                                >
+                                @error('population') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Année</label>
+                                <input
+                                    type="number"
+                                    wire:model="populationYear"
+                                    min="1900"
+                                    max="2100"
+                                    class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="2024"
+                                >
+                                @error('populationYear') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Monnaie</label>
+                            <input
+                                type="text"
+                                wire:model="currency"
+                                class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Euro (EUR)"
+                            >
+                            @error('currency') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
                     </div>
                 </div>
 

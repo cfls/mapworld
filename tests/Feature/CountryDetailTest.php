@@ -47,8 +47,7 @@ test('country detail shows international fallback when no video uploaded', funct
 
 test('country detail renders lsfb video player when video exists', function () {
     $country = Country::factory()->create();
-    SignVideo::factory()->lsfb()->create([
-        'country_id' => $country->id,
+    SignVideo::factory()->lsfb()->forCountry($country)->create([
         'cloudinary_url' => 'https://res.cloudinary.com/demo/video/upload/dog.mp4',
     ]);
 
@@ -59,8 +58,7 @@ test('country detail renders lsfb video player when video exists', function () {
 
 test('country detail renders international video player when video exists', function () {
     $country = Country::factory()->create();
-    SignVideo::factory()->international()->create([
-        'country_id' => $country->id,
+    SignVideo::factory()->international()->forCountry($country)->create([
         'cloudinary_url' => 'https://res.cloudinary.com/demo/video/upload/intl.mp4',
     ]);
 

@@ -6,7 +6,7 @@ use App\Enums\SignVideoType;
 use Database\Factories\SignVideoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class SignVideo extends Model
 {
@@ -14,7 +14,8 @@ class SignVideo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'country_id',
+        'signable_type',
+        'signable_id',
         'type',
         'cloudinary_public_id',
         'cloudinary_url',
@@ -26,8 +27,8 @@ class SignVideo extends Model
         'type' => SignVideoType::class,
     ];
 
-    public function country(): BelongsTo
+    public function signable(): MorphTo
     {
-        return $this->belongsTo(Country::class);
+        return $this->morphTo();
     }
 }

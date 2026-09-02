@@ -10,6 +10,10 @@ return new class extends Migration
         $amerique = DB::table('continents')->where('name', 'Amerique')->value('id');
         $oceanie = DB::table('continents')->where('name', 'Oceanie')->value('id');
 
+        if (! $amerique || ! $oceanie) {
+            return;
+        }
+
         $territories = [
             [
                 'continent_id' => $amerique,

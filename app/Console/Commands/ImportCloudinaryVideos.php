@@ -105,7 +105,8 @@ class ImportCloudinaryVideos extends Command
                 SignVideo::updateOrCreate(
                     ['cloudinary_public_id' => $publicId],
                     [
-                        'country_id' => $country->id,
+                        'signable_type' => Country::class,
+                        'signable_id' => $country->id,
                         'type' => $type,
                         'cloudinary_url' => $resource['secure_url'],
                         'thumbnail_url' => $this->thumbnailUrl($publicId),

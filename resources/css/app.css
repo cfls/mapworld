@@ -2,6 +2,7 @@
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source inline('space-y-6 space-y-8 mt-4 mt-6 mt-8 mb-4 gap-6 gap-8 pb-6 pt-6');
 
 [x-cloak] { display: none !important; }
 

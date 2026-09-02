@@ -15,7 +15,8 @@ class SignVideoFactory extends Factory
     public function definition(): array
     {
         return [
-            'country_id' => Country::factory(),
+            'signable_type' => Country::class,
+            'signable_id' => Country::factory(),
             'type' => $this->faker->randomElement(SignVideoType::cases())->value,
             'cloudinary_public_id' => 'countryworld/'.$this->faker->uuid(),
             'cloudinary_url' => 'https://res.cloudinary.com/demo/video/upload/v1/'.$this->faker->uuid().'.mp4',
@@ -32,5 +33,13 @@ class SignVideoFactory extends Factory
     public function international(): static
     {
         return $this->state(['type' => SignVideoType::International->value]);
+    }
+
+    public function forCountry(Country $country): static
+    {
+        return $this->state([
+            'signable_type' => Country::class,
+            'signable_id' => $country->id,
+        ]);
     }
 }

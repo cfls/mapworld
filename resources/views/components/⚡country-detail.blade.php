@@ -34,7 +34,7 @@ new class extends Component
             return null;
         }
 
-        return Country::with(['continent', 'lsfbVideos', 'internationalVideo'])
+        return Country::with(['continent', 'info', 'lsfbVideos', 'internationalVideo'])
             ->find($this->countryId);
     }
 };
@@ -83,9 +83,9 @@ new class extends Component
                 @endif
             </div>
 
-            <div class="p-4 space-y-4">
+            <div class="p-4 space-y-6">
 
-                {{-- LSFB Card (solo si hay videos) --}}
+                {{-- LSFB Card --}}
                 @if ($this->country->lsfbVideos->isNotEmpty())
                 <section
                     aria-labelledby="lsfb-heading"
@@ -97,7 +97,7 @@ new class extends Component
                     </div>
 
                     @if ($this->country->lsfbVideos->count() > 1)
-                            {{-- Carousel for 2 videos --}}
+                            {{-- Carousel --}}
                             <div
                                 wire:key="lsfb-carousel-{{ $this->country->id }}"
                                 x-data="{
@@ -111,40 +111,13 @@ new class extends Component
                                 x-cloak
                             >
                                 @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                                    <div x-show="current === {{ $index }}" x-data="{ frozen: false }" class="relative aspect-video bg-black">
-                                        <video
-                                            class="absolute inset-0 w-full h-full object-contain"
-                                            controls
-                                            autoplay
-                                            muted
-                                            loop
-                                            playsinline
-                                            preload="metadata"
-                                            aria-label="Vidéo LSFB {{ $index + 1 }} — {{ $this->country->name }}"
-                                            x-on:stalled="frozen = true"
-                                            x-on:error="frozen = true"
-                                            x-on:playing="frozen = false"
-                                            @if ($lsfbVideo->thumbnail_url)
-                                                poster="{{ $lsfbVideo->thumbnail_url }}"
-                                            @endif
-                                        >
-                                            <source src="{{ $lsfbVideo->cloudinary_url }}" type="video/mp4">
-                                        </video>
-                                        <div
-                                            x-show="frozen"
-                                            x-cloak
-                                            class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3"
-                                        >
-                                            <svg class="w-8 h-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                                            </svg>
-                                            <button
-                                                @click="frozen = false; $root.querySelector('video').load(); $root.querySelector('video').play();"
-                                                class="px-4 py-2 rounded-lg bg-white text-slate-800 text-sm font-semibold hover:bg-slate-100 transition-colors"
-                                            >
-                                                Relancer la vidéo
-                                            </button>
-                                        </div>
+                                    <div x-show="current === {{ $index }}">
+                                        <x-video-player
+                                            :url="$lsfbVideo->cloudinary_url"
+                                            :thumbnail="$lsfbVideo->thumbnail_url"
+                                            :label="'Vidéo LSFB ' . ($index + 1) . ' — ' . $this->country->name"
+                                            :wire-key="'lsfb-carousel-video-' . $this->country->id . '-' . $index"
+                                        />
                                     </div>
                                 @endforeach
 
@@ -156,9 +129,7 @@ new class extends Component
                                         :class="current === 0 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
                                         class="text-sm font-medium transition-colors"
                                         aria-label="Vidéo LSFB précédente"
-                                    >
-                                        ← Précédente
-                                    </button>
+                                    >← Précédente</button>
 
                                     <div class="flex gap-1.5" role="tablist" aria-label="Sélectionner une vidéo LSFB">
                                         @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
@@ -179,51 +150,17 @@ new class extends Component
                                         :class="current === 1 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
                                         class="text-sm font-medium transition-colors"
                                         aria-label="Vidéo LSFB suivante"
-                                    >
-                                        Suivante →
-                                    </button>
+                                    >Suivante →</button>
                                 </div>
                             </div>
                         @else
-                            {{-- Single video, no carousel --}}
                             @php $lsfbVideo = $this->country->lsfbVideos->first(); @endphp
-                            <div class="relative aspect-video bg-black" x-data="{ frozen: false }">
-                                <video
-                                    x-ref="video"
-                                    wire:key="lsfb-video-{{ $this->country->id }}"
-                                    class="absolute inset-0 w-full h-full object-contain"
-                                    controls
-                                    autoplay
-                                    muted
-                                    loop
-                                    playsinline
-                                    preload="metadata"
-                                    aria-label="Vidéo LSFB — {{ $this->country->name }}"
-                                    x-on:stalled="frozen = true"
-                                    x-on:error="frozen = true"
-                                    x-on:playing="frozen = false"
-                                    @if ($lsfbVideo->thumbnail_url)
-                                        poster="{{ $lsfbVideo->thumbnail_url }}"
-                                    @endif
-                                >
-                                    <source src="{{ $lsfbVideo->cloudinary_url }}" type="video/mp4">
-                                </video>
-                                <div
-                                    x-show="frozen"
-                                    x-cloak
-                                    class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3"
-                                >
-                                    <svg class="w-8 h-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                                    </svg>
-                                    <button
-                                        @click="frozen = false; $refs.video.load(); $refs.video.play();"
-                                        class="px-4 py-2 rounded-lg bg-white text-slate-800 text-sm font-semibold hover:bg-slate-100 transition-colors"
-                                    >
-                                        Relancer la vidéo
-                                    </button>
-                                </div>
-                            </div>
+                            <x-video-player
+                                :url="$lsfbVideo->cloudinary_url"
+                                :thumbnail="$lsfbVideo->thumbnail_url"
+                                :label="'Vidéo LSFB — ' . $this->country->name"
+                                :wire-key="'lsfb-video-' . $this->country->id"
+                            />
                         @endif
                 </section>
                 @endif
@@ -239,43 +176,12 @@ new class extends Component
                     </div>
 
                     @if ($this->country->internationalVideo)
-                        <div class="relative aspect-video bg-black" x-data="{ frozen: false }">
-                            <video
-                                x-ref="video"
-                                wire:key="int-video-{{ $this->country->id }}"
-                                class="absolute inset-0 w-full h-full object-contain"
-                                controls
-                                autoplay
-                                muted
-                                loop
-                                playsinline
-                                preload="metadata"
-                                aria-label="Vidéo en Signes Internationaux — {{ $this->country->name }}"
-                                x-on:stalled="frozen = true"
-                                x-on:error="frozen = true"
-                                x-on:playing="frozen = false"
-                                @if ($this->country->internationalVideo->thumbnail_url)
-                                    poster="{{ $this->country->internationalVideo->thumbnail_url }}"
-                                @endif
-                            >
-                                <source src="{{ $this->country->internationalVideo->cloudinary_url }}" type="video/mp4">
-                            </video>
-                            <div
-                                x-show="frozen"
-                                x-cloak
-                                class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3"
-                            >
-                                <svg class="w-8 h-8 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                                </svg>
-                                <button
-                                    @click="frozen = false; $refs.video.load(); $refs.video.play();"
-                                    class="px-4 py-2 rounded-lg bg-white text-slate-800 text-sm font-semibold hover:bg-slate-100 transition-colors"
-                                >
-                                    Relancer la vidéo
-                                </button>
-                            </div>
-                        </div>
+                        <x-video-player
+                            :url="$this->country->internationalVideo->cloudinary_url"
+                            :thumbnail="$this->country->internationalVideo->thumbnail_url"
+                            :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
+                            :wire-key="'int-video-' . $this->country->id"
+                        />
                     @else
                         <div
                             class="w-full aspect-video bg-slate-50 flex flex-col items-center justify-center gap-2"
@@ -289,6 +195,51 @@ new class extends Component
                         </div>
                     @endif
                 </section>
+
+                {{-- Fiche informative --}}
+                @if ($this->country->info)
+                    @php $info = $this->country->info; @endphp
+                    <section
+                        aria-labelledby="info-heading"
+                        class="rounded-lg border border-slate-200 overflow-hidden"
+                    >
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0" aria-hidden="true"></span>
+                            <h3 id="info-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Informations</h3>
+                        </div>
+                        <dl class="divide-y divide-slate-100">
+                            @if ($info->capital)
+                                <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Capitale</dt>
+                                    <dd class="text-sm text-slate-800 font-medium">{{ $info->capital }}</dd>
+                                </div>
+                            @endif
+                            @if ($info->languages)
+                                <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Langue(s)</dt>
+                                    <dd class="text-sm text-slate-800">{{ implode(', ', $info->languages) }}</dd>
+                                </div>
+                            @endif
+                            @if ($info->population !== null)
+                                <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Population</dt>
+                                    <dd class="text-sm text-slate-800">
+                                        {{ $info->formatted_population }}
+                                        @if ($info->population_year)
+                                            <span class="text-xs text-slate-400 ml-1">({{ $info->population_year }})</span>
+                                        @endif
+                                    </dd>
+                                </div>
+                            @endif
+                            @if ($info->currency)
+                                <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Monnaie</dt>
+                                    <dd class="text-sm text-slate-800">{{ $info->currency }}</dd>
+                                </div>
+                            @endif
+                        </dl>
+                    </section>
+                @endif
 
             </div>
         </div>
