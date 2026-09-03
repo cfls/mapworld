@@ -82,7 +82,7 @@
         :class="mapMode === 'pays' ? 'pt-[6.5rem]' : 'pt-[4.5rem]'"
     >
         {{-- Mode selector --}}
-        <div class="flex items-center gap-1 bg-white rounded-xl border border-slate-200 p-1 w-fit shadow-sm" role="tablist" aria-label="Mode de carte">
+        <div class="hidden items-center gap-1 bg-white rounded-xl border border-slate-200 p-1 w-fit shadow-sm" role="tablist" aria-label="Mode de carte">
             <button
                 @click="mapMode = 'pays'"
                 :class="mapMode === 'pays'
