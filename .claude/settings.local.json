@@ -38,7 +38,14 @@
       "Bash(curl -sL \"https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_geography_marine_polys.geojson\" -o \"public/geojson/world-oceans.json\")",
       "Bash(Get-ChildItem \"public/build/assets\" -Filter \"*.css\")",
       "Bash(Select-Object Name)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "WebFetch(domain:restcountries.com)",
+      "WebFetch(domain:files-03.restcountries.com)",
+      "WebFetch(domain:api.restcountries.com)",
+      "Bash(curl -s \"https://restcountries.com/v3.1/alpha/FRA\")",
+      "Bash(curl -sL \"https://restcountries.com/v3.1/alpha/FRA\")",
+      "Bash(curl -sL \"https://restcountries.com/docs/countries/legacy-api-deprecation\")",
+      "Bash(Start-Sleep -Seconds 30)"
     ]
   },
   "enabledMcpjsonServers": [

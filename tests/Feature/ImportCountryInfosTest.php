@@ -46,12 +46,12 @@ test('command creates country_info from API response', function () {
     $info = CountryInfo::where('country_id', $country->id)->firstOrFail();
 
     expect($info->capital)->toBe('San José')
-        ->and($info->currency)->toBe('CRC')
+        ->and($info->currency)->toBe('colón costaricain')
         ->and($info->population)->toBe(5160700)
         ->and($info->population_year)->toBeNull()
         ->and($info->languages)->toBe([[
             'code' => 'es',
-            'name' => 'Spanish',
+            'name' => 'Espagnol',
             'native_name' => 'español',
         ]]);
 });
