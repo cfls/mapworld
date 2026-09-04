@@ -141,6 +141,14 @@ new class extends Component
         let selectedContinentId = null;
         let selectedLayer = null;
         let isColorfulMode = false;
+        let territoryMarker = null;
+
+        function clearTerritoryMarker() {
+            if (territoryMarker) {
+                map.removeLayer(territoryMarker);
+                territoryMarker = null;
+            }
+        }
 
         const defaultStyle     = { fillColor: '#4f46e5', weight: 1,   color: '#ffffff', fillOpacity: 0.35, opacity: 0.6  };
         const dimmedStyle      = { fillColor: '#94a3b8', weight: 0.5, color: '#ffffff', fillOpacity: 0.04, opacity: 0.2  };
@@ -351,6 +359,7 @@ new class extends Component
                 if (!country || country.id !== countryId) return;
 
                 layerFound = true;
+                clearTerritoryMarker();
 
                 if (selectedLayer && selectedLayer !== layer) {
                     geojsonLayer.resetStyle(selectedLayer);
@@ -372,7 +381,7 @@ new class extends Component
                 }
             });
 
-            // Territory without GeoJSON polygon (no iso3): fly to stored coordinates
+            // Territory without GeoJSON polygon: fly to stored coordinates and show a marker
             if (!layerFound) {
                 if (selectedLayer) {
                     geojsonLayer.resetStyle(selectedLayer);
@@ -385,6 +394,14 @@ new class extends Component
                 const coords = countriesById[countryId];
                 if (coords) {
                     map.flyTo([coords.lat, coords.lng], 7, { duration: 0.8 });
+                    clearTerritoryMarker();
+                    territoryMarker = L.circle([coords.lat, coords.lng], {
+                        radius: 25000,
+                        color: '#ffffff',
+                        weight: 2,
+                        fillColor: '#16a34a',
+                        fillOpacity: 0.65,
+                    }).addTo(map);
                 }
             }
         });
@@ -393,6 +410,7 @@ new class extends Component
         Livewire.on('continent-selected', ({ continentId }) => {
             selectedContinentId = continentId ?? null;
             selectedLayer = null;
+            clearTerritoryMarker();
             map.flyTo([20, 0], 2, { duration: 0.8 });
             if (!geojsonLayer) return;
             geojsonLayer.eachLayer(layer => {
@@ -404,6 +422,7 @@ new class extends Component
         // Reset: fly back to world view and clear selection
         Livewire.on('map-reset', () => {
             map.flyTo([20, 0], 2, { duration: 0.8 });
+            clearTerritoryMarker();
             if (selectedLayer && geojsonLayer) {
                 geojsonLayer.resetStyle(selectedLayer);
                 const prevCountry = countriesByIso[selectedLayer.feature.id];

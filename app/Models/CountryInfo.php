@@ -19,12 +19,30 @@ class CountryInfo extends Model
         'languages',
         'population',
         'currency',
+        'currency_code',
         'population_year',
+        'entity_type',
+        'parent_country',
     ];
 
     protected $casts = [
         'languages' => 'array',
     ];
+
+    protected function currencyLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            if ($this->currency === null) {
+                return null;
+            }
+
+            if ($this->currency_code === null) {
+                return $this->currency;
+            }
+
+            return "{$this->currency_code} — {$this->currency}";
+        });
+    }
 
     protected function formattedPopulation(): Attribute
     {

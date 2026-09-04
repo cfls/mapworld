@@ -198,7 +198,21 @@ new class extends Component
 
                 {{-- Fiche informative --}}
                 @if ($this->country->info)
-                    @php $info = $this->country->info; @endphp
+                    @php
+                        $info = $this->country->info;
+                        $isSovereign = ! $info->entity_type || $info->entity_type === 'sovereign_state';
+                        $entityLabels = [
+                            'constituent_country'  => 'Nation constitutive',
+                            'autonomous_community' => 'Communauté autonome',
+                            'autonomous_city'      => 'Ville autonome',
+                            'autonomous_region'    => 'Région autonome',
+                            'administrative_region'=> 'Région administrative',
+                            'federal_subject'      => 'République fédérée',
+                            'geographic_entity'    => 'Entité géographique',
+                            'unrecognized_state'   => 'État non reconnu',
+                            'transnational_region' => 'Région transnationale',
+                        ];
+                    @endphp
                     <section
                         aria-labelledby="info-heading"
                         class="rounded-lg border border-slate-200 overflow-hidden"
@@ -208,6 +222,18 @@ new class extends Component
                             <h3 id="info-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Informations</h3>
                         </div>
                         <dl class="divide-y divide-slate-100">
+                            @unless ($isSovereign)
+                                <div class="flex items-center gap-3 px-4 py-2.5">
+                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Statut</dt>
+                                    <dd class="text-sm text-slate-800">{{ $entityLabels[$info->entity_type] ?? $info->entity_type }}</dd>
+                                </div>
+                                @if ($info->parent_country)
+                                    <div class="flex items-center gap-3 px-4 py-2.5">
+                                        <dt class="text-xs text-slate-400 w-24 shrink-0">Fait partie de</dt>
+                                        <dd class="text-sm text-slate-800">{{ $info->parent_country }}</dd>
+                                    </div>
+                                @endif
+                            @endunless
                             @if ($info->capital)
                                 <div class="flex items-center gap-3 px-4 py-2.5">
                                     <dt class="text-xs text-slate-400 w-24 shrink-0">Capitale</dt>
@@ -234,7 +260,12 @@ new class extends Component
                             @if ($info->currency)
                                 <div class="flex items-center gap-3 px-4 py-2.5">
                                     <dt class="text-xs text-slate-400 w-24 shrink-0">Monnaie</dt>
-                                    <dd class="text-sm text-slate-800">{{ $info->currency }}</dd>
+                                    <dd class="text-sm text-slate-800 flex items-center gap-2">
+                                        @if ($info->currency_code)
+                                            <span class="font-mono text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{{ $info->currency_code }}</span>
+                                        @endif
+                                        {{ $info->currency }}
+                                    </dd>
                                 </div>
                             @endif
                         </dl>
