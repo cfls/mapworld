@@ -21,10 +21,11 @@ new class extends Component
     #[Computed]
     public function countries()
     {
-        return Country::when(
-            $this->selectedContinentId,
-            fn ($q) => $q->where('continent_id', $this->selectedContinentId)
-        )
+        return Country::whereHas('signVideos')
+            ->when(
+                $this->selectedContinentId,
+                fn ($q) => $q->where('continent_id', $this->selectedContinentId)
+            )
             ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
             ->get();

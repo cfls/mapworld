@@ -45,10 +45,68 @@ new class extends Component
     aria-atomic="true"
     aria-label="Fiche du pays sélectionné"
     class="scroll-mt-16"
-    x-data="{ showAmerique: false }"
-    x-on:continent-selected.window="showAmerique = ($event.detail.continentName === 'Amerique')"
-    x-on:country-selected.window="showAmerique = false"
-    x-on:map-reset.window="showAmerique = false"
+    x-data="{
+        selectedContinent: null,
+        videoUrl: null,
+        videoTitle: null,
+        cloudBase: 'https://res.cloudinary.com/dmhdsjmzf/video/upload/',
+        continentVideos: {
+            Amerique: {
+                displayName: 'Amérique',
+                type: 'regions',
+                regions: [
+                    { name: 'Amérique',          lsfb: 'Am%C3%A9rique_B_dlsrpt',          intl: 'Am%C3%A9rique_Int_jzbxji' },
+                    { name: 'Amérique du Nord',  lsfb: 'Am%C3%A9rique_Du_Nord_B_wjp7cf',  intl: 'Am%C3%A9rique_Du_Nord_Int_q1ugjj' },
+                    { name: 'Amérique centrale', lsfb: 'Am%C3%A9rique_Centrale_B_vggkqu', intl: 'Am%C3%A9rique_Centrale_Int_cyk6s7' },
+                    { name: 'Amérique du Sud',   lsfb: 'Am%C3%A9rique_Du_Sud_B_smqinl',   intl: 'Am%C3%A9rique_Du_Sud_Int_mxrghg' },
+                ]
+            },
+            Afrique: {
+                displayName: 'Afrique',
+                type: 'videos',
+                lsfb: ['Afrique_1_B_qgde7p', 'Afrique_2_B_a913dj'],
+                intl: 'Afrique_Int_vtyxe6'
+            },
+            Europe: {
+                displayName: 'Europe',
+                type: 'videos',
+                lsfb: ['Europe_1_B_vgsepi', 'Europe_2_B_njsbjl'],
+                intl: 'Europe_Int_yhlqp7'
+            },
+            Asie: {
+                displayName: 'Asie',
+                type: 'videos',
+                lsfb: ['Asie_B_hftfqw'],
+                intl: 'Asie_Int_ju4qdw'
+            },
+            Oceanie: {
+                displayName: 'Océanie',
+                type: 'videos',
+                lsfb: ['Oc%C3%A9anie_B_i1zgb4'],
+                intl: null
+            }
+        },
+        get currentContinent() {
+            return this.selectedContinent ? this.continentVideos[this.selectedContinent] : null;
+        },
+        select(id, title) {
+            this.videoUrl = this.cloudBase + id + '.mp4';
+            this.videoTitle = title;
+            this.$nextTick(() => this.$refs.continentVideo?.play());
+        },
+        clear() {
+            this.$refs.continentVideo?.pause();
+            this.videoUrl = null;
+            this.videoTitle = null;
+        }
+    }"
+    x-on:continent-selected.window="
+        const name = $event.detail.continentName;
+        selectedContinent = continentVideos[name] ? name : null;
+        clear();
+    "
+    x-on:country-selected.window="selectedContinent = null; clear();"
+    x-on:map-reset.window="selectedContinent = null; clear();"
 >
     @if ($this->country)
         <div wire:key="state-country-{{ $this->country->id }}" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
@@ -166,6 +224,7 @@ new class extends Component
                 @endif
 
                 {{-- Signes Internationaux Card --}}
+                @if ($this->country->internationalVideo)
                 <section
                     aria-labelledby="intl-heading"
                     class="rounded-lg border border-slate-200 overflow-hidden"
@@ -175,26 +234,14 @@ new class extends Component
                         <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
                     </div>
 
-                    @if ($this->country->internationalVideo)
-                        <x-video-player
-                            :url="$this->country->internationalVideo->cloudinary_url"
-                            :thumbnail="$this->country->internationalVideo->thumbnail_url"
-                            :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
-                            :wire-key="'int-video-' . $this->country->id"
-                        />
-                    @else
-                        <div
-                            class="w-full aspect-video bg-slate-50 flex flex-col items-center justify-center gap-2"
-                            role="img"
-                            aria-label="Vidéo en Signe International pas encore disponible pour {{ $this->country->name }}"
-                        >
-                            <span class="text-3xl" aria-hidden="true">🌐</span>
-                            <p class="text-xs text-slate-400 font-medium text-center px-4">
-                                Vidéo en Signe International pas encore disponible
-                            </p>
-                        </div>
-                    @endif
+                    <x-video-player
+                        :url="$this->country->internationalVideo->cloudinary_url"
+                        :thumbnail="$this->country->internationalVideo->thumbnail_url"
+                        :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
+                        :wire-key="'int-video-' . $this->country->id"
+                    />
                 </section>
+                @endif
 
                 {{-- Fiche informative --}}
                 @if ($this->country->info)
@@ -276,36 +323,14 @@ new class extends Component
         </div>
 
     @else
-        {{-- Vidéos régionales Amérique: siempre en el DOM, visible/oculto por Alpine --}}
-        <div x-show="showAmerique" x-cloak>
-            <div
-                class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-                x-data="{
-                    videoUrl: null,
-                    videoTitle: null,
-                    cloudBase: 'https://res.cloudinary.com/dmhdsjmzf/video/upload/',
-                    regions: [
-                        { name: 'Amérique',          lsfb: 'Am%C3%A9rique_B_dlsrpt',          intl: 'Am%C3%A9rique_Int_jzbxji' },
-                        { name: 'Amérique du Nord',  lsfb: 'Am%C3%A9rique_Du_Nord_B_wjp7cf',  intl: 'Am%C3%A9rique_Du_Nord_Int_q1ugjj' },
-                        { name: 'Amérique centrale', lsfb: 'Am%C3%A9rique_Centrale_B_vggkqu', intl: 'Am%C3%A9rique_Centrale_Int_cyk6s7' },
-                        { name: 'Amérique du Sud',   lsfb: 'Am%C3%A9rique_Du_Sud_B_smqinl',   intl: 'Am%C3%A9rique_Du_Sud_Int_mxrghg' },
-                    ],
-                    select(url, title) {
-                        this.videoUrl = url;
-                        this.videoTitle = title;
-                        this.$nextTick(() => this.$refs.regionVideo?.play());
-                    },
-                    clear() {
-                        this.$refs.regionVideo?.pause();
-                        this.videoUrl = null;
-                        this.videoTitle = null;
-                    }
-                }"
-            >
+        {{-- Panel de vidéos du continent sélectionné --}}
+        <div x-show="selectedContinent" x-cloak>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+
                 {{-- Header --}}
                 <div class="bg-gradient-to-br from-indigo-600 to-indigo-500 px-5 py-4">
                     <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-0.5">Continent</p>
-                    <h2 class="text-white text-2xl font-bold leading-tight">Amérique</h2>
+                    <h2 class="text-white text-2xl font-bold leading-tight" x-text="currentContinent?.displayName"></h2>
                     <p class="text-indigo-300 text-xs mt-1">Vidéos régionales</p>
                 </div>
 
@@ -325,7 +350,7 @@ new class extends Component
                     </div>
                     <div class="relative aspect-video bg-black">
                         <video
-                            x-ref="regionVideo"
+                            x-ref="continentVideo"
                             class="absolute inset-0 w-full h-full object-contain"
                             controls
                             muted
@@ -338,38 +363,72 @@ new class extends Component
                     </div>
                 </div>
 
-                {{-- Cards de región --}}
-                <div class="p-4 space-y-2">
-                    <template x-for="region in regions" :key="region.name">
+                {{-- Type "regions" (Amérique) : cartes par sous-région --}}
+                <div x-show="currentContinent?.type === 'regions'" class="p-4 space-y-2">
+                    <template x-for="region in (currentContinent?.regions ?? [])" :key="region.name">
                         <div class="rounded-lg border border-slate-200 overflow-hidden">
                             <div class="px-4 py-2 bg-slate-50 border-b border-slate-200">
                                 <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide" x-text="region.name"></p>
                             </div>
                             <div class="flex gap-2 p-2.5">
                                 <button
-                                    @click="select(cloudBase + region.lsfb + '.mp4', region.name + ' — LSFB')"
+                                    @click="select(region.lsfb, region.name + ' — LSFB')"
                                     class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                                     :aria-label="'Voir LSFB — ' + region.name"
-                                >
-                                    LSFB
-                                </button>
+                                >LSFB</button>
                                 <button
-                                    @click="select(cloudBase + region.intl + '.mp4', region.name + ' — Signes Internationaux')"
+                                    @click="select(region.intl, region.name + ' — Signes Internationaux')"
                                     class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
                                     :aria-label="'Voir Signes Internationaux — ' + region.name"
-                                >
-                                    Signes Int.
-                                </button>
+                                >Signes Int.</button>
                             </div>
                         </div>
                     </template>
+                </div>
+
+                {{-- Type "videos" (autres continents) : LSFB + International --}}
+                <div x-show="currentContinent?.type === 'videos'" class="p-4 space-y-2">
+
+                    {{-- LSFB --}}
+                    <div class="rounded-lg border border-slate-200 overflow-hidden">
+                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0" aria-hidden="true"></span>
+                            <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</p>
+                        </div>
+                        <div class="flex gap-2 p-2.5">
+                            <template x-for="(id, index) in (currentContinent?.lsfb ?? [])" :key="id">
+                                <button
+                                    @click="select(id, currentContinent.displayName + ' — LSFB' + (currentContinent.lsfb.length > 1 ? ' ' + (index + 1) : ''))"
+                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                    :aria-label="'Voir LSFB ' + (currentContinent.lsfb.length > 1 ? (index + 1) + ' — ' : '— ') + currentContinent.displayName"
+                                    x-text="currentContinent.lsfb.length > 1 ? 'LSFB ' + (index + 1) : 'LSFB'"
+                                ></button>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- International (si disponible) --}}
+                    <div x-show="currentContinent?.intl" class="rounded-lg border border-slate-200 overflow-hidden">
+                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
+                            <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</p>
+                        </div>
+                        <div class="flex gap-2 p-2.5">
+                            <button
+                                @click="currentContinent.intl && select(currentContinent.intl, currentContinent.displayName + ' — Signes Internationaux')"
+                                class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                :aria-label="'Voir Signes Internationaux — ' + currentContinent?.displayName"
+                            >Signes Int.</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
 
         {{-- Empty state --}}
         <div
-            x-show="!showAmerique"
+            x-show="!selectedContinent"
             class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-3 h-full min-h-[280px] px-8 text-center"
             role="status"
         >
