@@ -166,10 +166,18 @@ class ImportCloudinaryVideos extends Command
      * @var list<string>
      */
     private const REGIONAL_ENTRIES = [
+        'Afrique',
+        'Afrique 1',
+        'Afrique 2',
         'Amérique',
         'Amérique Du Nord',
         'Amérique Centrale',
         'Amérique Du Sud',
+        'Asie',
+        'Europe',
+        'Europe 1',
+        'Europe 2',
+        'Océanie',
     ];
 
     /**
@@ -179,9 +187,30 @@ class ImportCloudinaryVideos extends Command
      * @var array<string, string>
      */
     private const NAME_ALIASES = [
+        // Amérique
         'Puerto Rico' => 'Porto Rico',
         'Trinité Et Tobago' => 'Trinité-et-Tobago',
         'Sainte Lucie' => 'Sainte-Lucie',
+        // Afrique
+        'Côte D ivoire' => "Côte d'Ivoire",
+        'Lybie' => 'Libye',
+        'République Du Congo' => 'Congo',
+        'Republique Démocratique Du Congo' => 'Congo (RDC)',
+        'Sao Tomé' => 'Sao Tomé-et-Principe',
+        'Île Maurice' => 'Maurice',
+        // Asie
+        'Biélorussie' => 'Bélarus',
+        'Les Maldives' => 'Maldives',
+        'Myanmar - Birmanie' => 'Myanmar',
+        'Ouzbekhistan' => 'Ouzbékistan',
+        'Papouasie' => 'Papouasie-Nouvelle-Guinée',
+        'Soudan Du Nord' => 'Soudan',
+        'Vietnam' => 'Viêt Nam',
+        // Europe
+        'Bosnie' => 'Bosnie-Herzégovine',
+        'Mellila' => 'Melilla',
+        // Océanie
+        'Îles Salomon' => 'Salomon',
     ];
 
     /**

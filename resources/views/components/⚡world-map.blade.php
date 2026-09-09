@@ -15,6 +15,7 @@ new class extends Component
     {
         return Country::select('id', 'iso3', 'continent_id', 'name')
             ->whereNotNull('iso3')
+            ->whereHas('signVideos')
             ->get()
             ->keyBy('iso3')
             ->map(fn ($c) => ['id' => $c->id, 'continentId' => $c->continent_id, 'name' => $c->name])
@@ -27,6 +28,7 @@ new class extends Component
         return Country::select('id', 'latitude', 'longitude')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
+            ->whereHas('signVideos')
             ->get()
             ->keyBy('id')
             ->map(fn ($c) => ['lat' => (float) $c->latitude, 'lng' => (float) $c->longitude])
