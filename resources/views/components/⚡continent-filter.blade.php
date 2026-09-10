@@ -33,7 +33,7 @@ new class extends Component
 <div
     role="group"
     aria-label="Filtrer par continent"
-    class="flex flex-wrap gap-2"
+    class="flex gap-2 overflow-x-auto scrollbar-none pb-0.5"
     x-data="{
         handleKey(e) {
             const btns = [...$el.querySelectorAll(':scope > button')];
@@ -47,9 +47,9 @@ new class extends Component
     <button
         wire:click="selectContinent(null)"
         aria-pressed="{{ $selectedContinentId === null ? 'true' : 'false' }}"
-        class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 whitespace-nowrap shrink-0 min-h-[36px]
                {{ $selectedContinentId === null
-                   ? 'bg-indigo-600 text-white shadow-sm'
+                   ? 'bg-blue-600 text-white shadow-sm'
                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
     >
         Tous
@@ -59,9 +59,9 @@ new class extends Component
         <button
             wire:click="selectContinent({{ $continent->id }})"
             aria-pressed="{{ $selectedContinentId === $continent->id ? 'true' : 'false' }}"
-            class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1
+            class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 whitespace-nowrap shrink-0 min-h-[36px]
                    {{ $selectedContinentId === $continent->id
-                       ? 'bg-indigo-600 text-white shadow-sm'
+                       ? 'bg-blue-600 text-white shadow-sm'
                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
         >
             {{ $continent->name }}
