@@ -7,7 +7,7 @@
 ])
 
 <div
-    class="relative bg-black {{ $lgFillHeight ? 'aspect-video lg:aspect-auto lg:flex-1 lg:min-h-0' : 'aspect-video' }}"
+    class="relative bg-slate-900 {{ $lgFillHeight ? 'aspect-video lg:aspect-auto lg:flex-1 lg:min-h-0' : 'aspect-video' }}"
     x-data="{ frozen: false }"
     wire:key="{{ $wireKey }}"
     x-init="$nextTick(() => { $refs.video?.load(); $refs.video?.play()?.catch(() => {}); })"

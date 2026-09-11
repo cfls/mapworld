@@ -245,7 +245,7 @@ new class extends Component
                             </svg>
                         </button>
                     </div>
-                    <div class="relative aspect-video bg-black">
+                    <div class="relative aspect-video bg-slate-900">
                         <video
                             x-ref="continentVideo"
                             class="absolute inset-0 w-full h-full object-contain"
