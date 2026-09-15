@@ -62,18 +62,18 @@ new class extends Component
         >
             <div class="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
                 <span class="text-emerald-500 font-bold text-lg leading-none" aria-hidden="true">•</span>
-                <h3 id="info-heading" class="text-sm font-semibold text-slate-700">INFO</h3>
+                <h3 id="info-heading" class="text-base font-bold text-slate-800">INFO</h3>
             </div>
 
             <dl class="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3">
                 @unless ($isSovereign)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Statut</dt>
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Statut</dt>
                         <dd class="text-sm text-slate-800">{{ $entityLabels[$info->entity_type] ?? $info->entity_type }}</dd>
                     </div>
                     @if ($info->parent_country)
                         <div class="flex items-baseline gap-2 min-w-0">
-                            <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Fait partie de</dt>
+                            <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Fait partie de</dt>
                             <dd class="text-sm text-slate-800">{{ $info->parent_country }}</dd>
                         </div>
                     @endif
@@ -81,14 +81,14 @@ new class extends Component
 
                 @if ($info->capital)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Capitale</dt>
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Capitale</dt>
                         <dd class="text-sm font-medium text-slate-800 truncate">{{ $info->capital }}</dd>
                     </div>
                 @endif
 
                 @if ($info->population !== null)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Population</dt>
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Population</dt>
                         <dd class="text-sm text-slate-800">
                             {{ $info->formatted_population }}
                             @if ($info->population_year)
@@ -100,14 +100,14 @@ new class extends Component
 
                 @if ($info->languages)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Langue(s)</dt>
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Langue(s)</dt>
                         <dd class="text-sm text-slate-800 truncate">{{ implode(', ', array_column($info->languages, 'name')) }}</dd>
                     </div>
                 @endif
 
                 @if ($info->currency)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Monnaie</dt>
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Monnaie</dt>
                         <dd class="text-sm text-slate-800">{{ $info->currency_label }}</dd>
                     </div>
                 @endif
