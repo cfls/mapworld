@@ -145,8 +145,34 @@ new class extends Component
             document.getElementById('world-map-coords').textContent
         );
 
+        const AMERICA_SUBREGIONS = {
+            nord:     new Set(['CAN', 'USA', 'MEX', 'GRL']),
+            centrale: new Set(['BLZ', 'CRI', 'SLV', 'GTM', 'HND', 'NIC', 'PAN',
+                               'CUB', 'HTI', 'DOM', 'JAM', 'TTO', 'ATG', 'BHS',
+                               'BRB', 'DMA', 'GRD', 'KNA', 'VCT', 'LCA', 'ABW',
+                               'CUW', 'PRI', 'GLP', 'MTQ', 'BLM', 'MAF']),
+            sud:      new Set(['ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU', 'GUY',
+                               'GUF', 'PRY', 'PER', 'SUR', 'URY', 'VEN', 'FLK']),
+        };
+
+        const SUBREGION_VIEW = {
+            nord:     { center: [50, -95],  zoom: 3 },
+            centrale: { center: [17, -76],  zoom: 4 },
+            sud:      { center: [-15, -58], zoom: 3 },
+        };
+
+        // continentId → {center, zoom}  (IDs from DB: 1=Afrique 2=Amerique 3=Asie 4=Europe 5=Oceanie)
+        const CONTINENT_VIEW = {
+            1: { center: [5,   20],  zoom: 3 },
+            2: { center: [10, -80],  zoom: 3 },
+            3: { center: [35,  90],  zoom: 3 },
+            4: { center: [50,  15],  zoom: 4 },
+            5: { center: [-25, 145], zoom: 3 },
+        };
+
         let geojsonLayer = null;
         let selectedContinentId = null;
+        let activeSubRegionSet = null;
         let selectedLayer = null;
         let isColorfulMode = false;
         let territoryMarker = null;
@@ -184,13 +210,23 @@ new class extends Component
             [defaultStyle, dimmedStyle, hoverStyle, selectedStyle, transparentStyle].forEach(s => { s.color = color; });
         }
 
+        function isInActiveFilter(feature, country) {
+            if (selectedContinentId !== null && (!country || country.continentId !== selectedContinentId)) {
+                return false;
+            }
+            if (activeSubRegionSet !== null && !activeSubRegionSet.has(feature.id)) {
+                return false;
+            }
+            return true;
+        }
+
         function styleForFeature(feature) {
             const country = countriesByIso[feature.id];
             if (isColorfulMode) {
                 if (!country) {
                     return { fillColor: '#e2e8f0', weight: 0.5, color: '#ffffff', fillOpacity: 0.4, opacity: 0.4 };
                 }
-                if (selectedContinentId !== null && country.continentId !== selectedContinentId) {
+                if (!isInActiveFilter(feature, country)) {
                     return { fillColor: '#cbd5e1', weight: 0.5, color: '#ffffff', fillOpacity: 0.3, opacity: 0.4 };
                 }
                 return { fillColor: colorForFeature(feature.id), weight: 0.5, color: '#ffffff', fillOpacity: 1, opacity: 1 };
@@ -199,7 +235,7 @@ new class extends Component
                 return transparentStyle;
             }
             if (!country) return dimmedStyle;
-            return country.continentId === selectedContinentId ? defaultStyle : dimmedStyle;
+            return isInActiveFilter(feature, country) ? defaultStyle : dimmedStyle;
         }
 
         function onEachFeature(feature, layer) {
@@ -208,7 +244,7 @@ new class extends Component
             layer.on({
                 mouseover(e) {
                     if (!country) return;
-                    if (selectedContinentId !== null && country.continentId !== selectedContinentId) return;
+                    if (!isInActiveFilter(feature, country)) return;
                     if (e.target === selectedLayer) return;
                     if (isColorfulMode) {
                         e.target.setStyle({
@@ -226,7 +262,7 @@ new class extends Component
                     if (e.target === selectedLayer) return;
                     geojsonLayer.resetStyle(e.target);
                     if (!isColorfulMode && selectedContinentId !== null) {
-                        if (!country || country.continentId !== selectedContinentId) {
+                        if (!isInActiveFilter(feature, country)) {
                             e.target.setStyle(dimmedStyle);
                         }
                     }
@@ -414,11 +450,21 @@ new class extends Component
             }
         });
 
-        Livewire.on('continent-selected', ({ continentId }) => {
+        Livewire.on('continent-selected', ({ continentId, subRegion }) => {
             selectedContinentId = continentId ?? null;
+            activeSubRegionSet = subRegion ? (AMERICA_SUBREGIONS[subRegion] ?? null) : null;
             selectedLayer = null;
             clearTerritoryMarker();
-            map.flyTo([20, 0], 2, { duration: 0.8 });
+
+            const view = subRegion
+                ? SUBREGION_VIEW[subRegion]
+                : (selectedContinentId ? CONTINENT_VIEW[selectedContinentId] : null);
+            if (view) {
+                map.flyTo(view.center, view.zoom, { duration: 0.8 });
+            } else {
+                map.flyTo([20, 0], 2, { duration: 0.8 });
+            }
+
             if (!geojsonLayer) return;
             geojsonLayer.eachLayer(layer => {
                 if (!layer.feature) return;
@@ -427,6 +473,7 @@ new class extends Component
         });
 
         Livewire.on('map-reset', () => {
+            activeSubRegionSet = null;
             map.flyTo([20, 0], 2, { duration: 0.8 });
             clearTerritoryMarker();
             if (selectedLayer && geojsonLayer) {

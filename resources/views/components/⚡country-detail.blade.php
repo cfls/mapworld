@@ -46,9 +46,15 @@ new class extends Component
     aria-label="Vidéos du pays sélectionné"
     x-data="{
         selectedContinent: null,
+        selectedSubRegion: null,
         videoUrl: null,
         videoTitle: null,
         cloudBase: 'https://res.cloudinary.com/dmhdsjmzf/video/upload/',
+        subRegionNames: {
+            nord:     'Amérique du Nord',
+            centrale: 'Amérique centrale',
+            sud:      'Amérique du Sud',
+        },
         continentVideos: {
             Amerique: {
                 displayName: 'Amérique',
@@ -97,15 +103,32 @@ new class extends Component
             this.$refs.continentVideo?.pause();
             this.videoUrl = null;
             this.videoTitle = null;
+        },
+        get filteredRegions() {
+            const regions = this.currentContinent?.regions ?? [];
+            if (!this.selectedSubRegion) return regions.slice(0, 1);
+            const target = this.subRegionNames[this.selectedSubRegion];
+            return target ? regions.filter(r => r.name === target) : regions;
         }
     }"
     x-on:continent-selected.window="
         const name = $event.detail.continentName;
+        const subR = $event.detail.subRegion ?? null;
         selectedContinent = continentVideos[name] ? name : null;
+        selectedSubRegion = subR;
         clear();
+        if (!selectedContinent) return;
+        const cont = currentContinent;
+        if (cont.type === 'regions') {
+            const region = filteredRegions[0];
+            if (region) select(region.lsfb, region.name + ' — LSFB');
+        } else if (cont.type === 'videos') {
+            const id = (cont.lsfb ?? [])[0];
+            if (id) select(id, cont.displayName + ' — LSFB');
+        }
     "
-    x-on:country-selected.window="selectedContinent = null; clear();"
-    x-on:map-reset.window="selectedContinent = null; clear();"
+    x-on:country-selected.window="selectedContinent = null; selectedSubRegion = null; clear();"
+    x-on:map-reset.window="selectedContinent = null; selectedSubRegion = null; clear();"
     class="flex flex-col gap-3 w-100"
 >
     @if ($this->country)
@@ -248,7 +271,7 @@ new class extends Component
 
                 {{-- Régions (Amérique) --}}
                 <div x-show="currentContinent?.type === 'regions'" class="p-3 space-y-2">
-                    <template x-for="region in (currentContinent?.regions ?? [])" :key="region.name">
+                    <template x-for="region in filteredRegions" :key="region.name">
                         <div class="rounded-xl border border-slate-200 overflow-hidden">
                             <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
                                 <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide" x-text="region.name"></p>
@@ -263,7 +286,7 @@ new class extends Component
                                     @click="select(region.intl, region.name + ' — Signes Internationaux')"
                                     class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 min-h-[36px]"
                                     :aria-label="'Voir Signes Internationaux — ' + region.name"
-                                >Signes Int.</button>
+                                >Signe International</button>
                             </div>
                         </div>
                     </template>
@@ -297,7 +320,7 @@ new class extends Component
                                 @click="currentContinent.intl && select(currentContinent.intl, currentContinent.displayName + ' — Signes Internationaux')"
                                 class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 min-h-[36px]"
                                 :aria-label="'Voir Signes Internationaux — ' + currentContinent?.displayName"
-                            >Signes Int.</button>
+                            >Signe International</button>
                         </div>
                     </div>
                 </div>

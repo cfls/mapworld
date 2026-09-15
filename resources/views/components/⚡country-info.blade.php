@@ -81,14 +81,14 @@ new class extends Component
 
                 @if ($info->capital)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Capitale</dt>
+                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Capitale</dt>
                         <dd class="text-sm font-medium text-slate-800 truncate">{{ $info->capital }}</dd>
                     </div>
                 @endif
 
                 @if ($info->population !== null)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Population</dt>
+                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Population</dt>
                         <dd class="text-sm text-slate-800">
                             {{ $info->formatted_population }}
                             @if ($info->population_year)
@@ -100,14 +100,14 @@ new class extends Component
 
                 @if ($info->languages)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Langue(s)</dt>
+                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Langue(s)</dt>
                         <dd class="text-sm text-slate-800 truncate">{{ implode(', ', array_column($info->languages, 'name')) }}</dd>
                     </div>
                 @endif
 
                 @if ($info->currency)
                     <div class="flex items-baseline gap-2 min-w-0">
-                        <dt class="text-xs text-slate-400 uppercase tracking-wide shrink-0 w-24">Monnaie</dt>
+                        <dt class="text-xs font-bold text-slate-900 uppercase tracking-wide shrink-0 w-24">Monnaie</dt>
                         <dd class="text-sm text-slate-800">{{ $info->currency_label }}</dd>
                     </div>
                 @endif
