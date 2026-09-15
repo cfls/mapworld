@@ -117,12 +117,18 @@ new class extends Component
                     </svg>
                 </button>
                 <button id="map-style-colorful" type="button" title="Coloré"
-                    class="w-10 h-10 flex items-center justify-center transition-colors">
+                    class="w-10 h-10 flex items-center justify-center border-b border-slate-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 16 16">
                         <rect x="1" y="1" width="6" height="6" rx="1" fill="#F06292"/>
                         <rect x="9" y="1" width="6" height="6" rx="1" fill="#42A5F5"/>
                         <rect x="1" y="9" width="6" height="6" rx="1" fill="#FFA726"/>
                         <rect x="9" y="9" width="6" height="6" rx="1" fill="#66BB6A"/>
+                    </svg>
+                </button>
+                <button id="map-style-google" type="button" title="Maps"
+                    class="w-10 h-10 flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                     </svg>
                 </button>
             </div>
@@ -175,6 +181,8 @@ new class extends Component
         let activeSubRegionSet = null;
         let selectedLayer = null;
         let isColorfulMode = false;
+        let isGoogleMode = false;
+        let markersLayer = null;
         let territoryMarker = null;
 
         function clearTerritoryMarker() {
@@ -220,8 +228,15 @@ new class extends Component
             return true;
         }
 
+        const googleHoverStyle   = { fillColor: '#1a73e8', weight: 1.5, color: '#1a73e8', fillOpacity: 0.18, opacity: 0.6 };
+        const googleSelectedStyle = { fillColor: '#1a73e8', weight: 2,   color: '#1a73e8', fillOpacity: 0.28, opacity: 0.9 };
+        const googleInvisible     = { fillOpacity: 0, weight: 0, opacity: 0 };
+
         function styleForFeature(feature) {
             const country = countriesByIso[feature.id];
+            if (isGoogleMode) {
+                return googleInvisible;
+            }
             if (isColorfulMode) {
                 if (!country) {
                     return { fillColor: '#e2e8f0', weight: 0.5, color: '#ffffff', fillOpacity: 0.4, opacity: 0.4 };
@@ -246,7 +261,9 @@ new class extends Component
                     if (!country) return;
                     if (!isInActiveFilter(feature, country)) return;
                     if (e.target === selectedLayer) return;
-                    if (isColorfulMode) {
+                    if (isGoogleMode) {
+                        e.target.setStyle(googleHoverStyle);
+                    } else if (isColorfulMode) {
                         e.target.setStyle({
                             fillColor: colorForFeature(feature.id),
                             weight: 2,
@@ -260,6 +277,10 @@ new class extends Component
                 },
                 mouseout(e) {
                     if (e.target === selectedLayer) return;
+                    if (isGoogleMode) {
+                        e.target.setStyle(googleInvisible);
+                        return;
+                    }
                     geojsonLayer.resetStyle(e.target);
                     if (!isColorfulMode && selectedContinentId !== null) {
                         if (!isInActiveFilter(feature, country)) {
@@ -270,15 +291,19 @@ new class extends Component
                 click(e) {
                     if (!country) return;
                     if (selectedLayer) {
-                        geojsonLayer.resetStyle(selectedLayer);
-                        const prevCountry = countriesByIso[selectedLayer.feature.id];
-                        if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
-                            selectedLayer.setStyle(dimmedStyle);
+                        if (isGoogleMode) {
+                            selectedLayer.setStyle(googleInvisible);
+                        } else {
+                            geojsonLayer.resetStyle(selectedLayer);
+                            const prevCountry = countriesByIso[selectedLayer.feature.id];
+                            if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                                selectedLayer.setStyle(dimmedStyle);
+                            }
                         }
                     }
                     const alreadySelected = selectedLayer === e.target;
                     selectedLayer = e.target;
-                    e.target.setStyle(selectedStyle);
+                    e.target.setStyle(isGoogleMode ? googleSelectedStyle : selectedStyle);
                     e.target.getElement()?.blur();
                     if (!alreadySelected) {
                         try {
@@ -311,12 +336,13 @@ new class extends Component
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
             },
             light: {
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-                attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan',
             },
             dark: {
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-                attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                cssFilter: 'invert(1) hue-rotate(180deg) brightness(0.75) contrast(1.1)',
             },
             standard: {
                 url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -326,10 +352,38 @@ new class extends Component
                 url: null,
                 attribution: '',
             },
+            google: {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+            },
         };
 
         const STYLE_KEY = 'mapworld-tile-style';
         let currentTileLayer = null;
+
+        const redPinSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="20" height="30"><path fill="#EA4335" stroke="#B71C1C" stroke-width="0.5" d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24S24 21 24 12C24 5.373 18.627 0 12 0z"/><circle fill="white" cx="12" cy="12" r="5"/></svg>`;
+        const redIcon = L.divIcon({ className: '', html: redPinSvg, iconSize: [20, 30], iconAnchor: [10, 30], tooltipAnchor: [0, -30] });
+
+        function buildMarkersLayer() {
+            if (markersLayer) { map.removeLayer(markersLayer); markersLayer = null; }
+            markersLayer = L.layerGroup();
+            Object.entries(countriesById).forEach(([id, coords]) => {
+                const numId = parseInt(id);
+                const country = Object.values(countriesByIso).find(c => c.id === numId);
+                if (!country) return;
+                if (selectedContinentId !== null && country.continentId !== selectedContinentId) return;
+                if (activeSubRegionSet !== null && !activeSubRegionSet.has(
+                    Object.keys(countriesByIso).find(iso => countriesByIso[iso].id === numId)
+                )) return;
+                const marker = L.marker([coords.lat, coords.lng], { icon: redIcon, title: country.name });
+                marker.on('click', () => {
+                    $wire.$dispatch('country-selected', { countryId: numId, continentId: country.continentId });
+                });
+                marker.bindTooltip(country.name, { sticky: true });
+                markersLayer.addLayer(marker);
+            });
+            markersLayer.addTo(map);
+        }
 
         function applyMapStyle(styleKey) {
             const def = MAP_STYLES[styleKey] || MAP_STYLES.satellite;
@@ -337,16 +391,28 @@ new class extends Component
                 map.removeLayer(currentTileLayer);
                 currentTileLayer = null;
             }
+            const cssFilter = def.cssFilter || '';
             if (def.url) {
                 currentTileLayer = L.tileLayer(def.url, { attribution: def.attribution }).addTo(map);
+                currentTileLayer.on('tileloadstart', () => {
+                    map.getContainer().querySelectorAll('.leaflet-tile-pane').forEach(p => { p.style.filter = cssFilter; });
+                });
             }
+            map.getContainer().querySelectorAll('.leaflet-tile-pane').forEach(p => { p.style.filter = cssFilter; });
 
             isColorfulMode = styleKey === 'colorful';
+            isGoogleMode = styleKey === 'google';
             localStorage.setItem(STYLE_KEY, styleKey);
             map.getContainer().style.background = isColorfulMode ? '#ffffff' : '';
 
+            if (isGoogleMode) {
+                buildMarkersLayer();
+            } else {
+                if (markersLayer) { map.removeLayer(markersLayer); markersLayer = null; }
+            }
+
             if (!isColorfulMode) {
-                const isLightTile = styleKey === 'light' || styleKey === 'standard';
+                const isLightTile = styleKey === 'light' || styleKey === 'standard' || styleKey === 'google';
                 updateBorderColor(isLightTile ? '#475569' : '#ffffff');
             }
 
@@ -407,16 +473,20 @@ new class extends Component
                 clearTerritoryMarker();
 
                 if (selectedLayer && selectedLayer !== layer) {
-                    geojsonLayer.resetStyle(selectedLayer);
-                    const prevCountry = countriesByIso[selectedLayer.feature.id];
-                    if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
-                        selectedLayer.setStyle(dimmedStyle);
+                    if (isGoogleMode) {
+                        selectedLayer.setStyle(googleInvisible);
+                    } else {
+                        geojsonLayer.resetStyle(selectedLayer);
+                        const prevCountry = countriesByIso[selectedLayer.feature.id];
+                        if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                            selectedLayer.setStyle(dimmedStyle);
+                        }
                     }
                 }
 
                 const alreadySelected = selectedLayer === layer;
                 selectedLayer = layer;
-                layer.setStyle(selectedStyle);
+                layer.setStyle(isGoogleMode ? googleSelectedStyle : selectedStyle);
                 layer.getElement()?.blur();
 
                 if (!alreadySelected) {
@@ -465,6 +535,8 @@ new class extends Component
                 map.flyTo([20, 0], 2, { duration: 0.8 });
             }
 
+            if (isGoogleMode) { buildMarkersLayer(); }
+
             if (!geojsonLayer) return;
             geojsonLayer.eachLayer(layer => {
                 if (!layer.feature) return;
@@ -477,13 +549,18 @@ new class extends Component
             map.flyTo([20, 0], 2, { duration: 0.8 });
             clearTerritoryMarker();
             if (selectedLayer && geojsonLayer) {
-                geojsonLayer.resetStyle(selectedLayer);
-                const prevCountry = countriesByIso[selectedLayer.feature.id];
-                if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
-                    selectedLayer.setStyle(dimmedStyle);
+                if (isGoogleMode) {
+                    selectedLayer.setStyle(googleInvisible);
+                } else {
+                    geojsonLayer.resetStyle(selectedLayer);
+                    const prevCountry = countriesByIso[selectedLayer.feature.id];
+                    if (!isColorfulMode && selectedContinentId !== null && (!prevCountry || prevCountry.continentId !== selectedContinentId)) {
+                        selectedLayer.setStyle(dimmedStyle);
+                    }
                 }
                 selectedLayer = null;
             }
+            if (isGoogleMode) { buildMarkersLayer(); }
         });
 
         window.addEventListener('resize', () => map?.invalidateSize());
