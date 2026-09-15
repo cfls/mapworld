@@ -79,7 +79,15 @@
     {{-- Contenu principal --}}
     <main
         id="main-content"
-        class="px-4 sm:px-6 lg:px-8 pb-8 space-y-3 pt-[7.5rem]"
+        x-data="{ headerHeight: 0 }"
+        x-init="
+            const header = document.querySelector('header');
+            const update = () => { headerHeight = header.offsetHeight; };
+            update();
+            new ResizeObserver(update).observe(header);
+        "
+        :style="'padding-top: ' + (headerHeight + 12) + 'px'"
+        class="px-4 sm:px-6 lg:px-8 pb-8 space-y-3"
     >
         {{-- Pays mode --}}
         <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak class="space-y-3">
@@ -97,7 +105,9 @@
                 </div>
 
                 {{-- Vidéos LSFB + INT --}}
-                <div class="space-y-3 lg:space-y-0 lg:sticky lg:top-[7.5rem] lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3">
+                <div class="space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
+                     :style="'top: ' + (headerHeight + 12) + 'px'"
+                >
                     <livewire:country-detail />
                 </div>
             </div>
