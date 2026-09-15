@@ -23,6 +23,8 @@ class CountryInfo extends Model
         'population_year',
         'entity_type',
         'parent_country',
+        'langue_de_signes',
+        'annee_de_reconnaissance',
     ];
 
     protected $casts = [

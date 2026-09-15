@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Country;
+use App\Models\CountrySignLanguage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -35,6 +36,21 @@ new class extends Component
         }
 
         return Country::with('info')->find($this->countryId)?->info;
+    }
+
+    #[Computed]
+    public function signLanguages()
+    {
+        if (! $this->countryId) {
+            return collect();
+        }
+
+        return CountrySignLanguage::query()
+            ->where('country_id', $this->countryId)
+            ->whereNotNull('annee_de_reconnaissance')
+            ->orderBy('annee_de_reconnaissance')
+            ->orderBy('nom')
+            ->get();
     }
 };
 ?>
@@ -109,6 +125,22 @@ new class extends Component
                     <div class="flex items-baseline gap-2 min-w-0">
                         <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Monnaie</dt>
                         <dd class="text-sm text-slate-800">{{ $info->currency_label }}</dd>
+                    </div>
+                @endif
+
+                @if ($this->signLanguages->isNotEmpty())
+                    <div class="flex items-start gap-2 min-w-0 sm:col-span-2">
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-36">Langue(s) des signes</dt>
+                        <dd class="text-sm text-slate-800 flex-1 space-y-1">
+                            @foreach ($this->signLanguages as $sl)
+                                <div>
+                                    <span class="font-medium">{{ $sl->nom }}</span>@if ($sl->sigle)
+                                        <span class="text-slate-500">({{ $sl->sigle }})</span>
+                                    @endif
+                                    <span class="text-xs text-slate-400">— {{ $sl->annee_de_reconnaissance }}</span>
+                                </div>
+                            @endforeach
+                        </dd>
                     </div>
                 @endif
             </dl>
