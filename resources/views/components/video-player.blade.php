@@ -3,13 +3,14 @@
     'thumbnail' => null,
     'label',
     'wireKey',
+    'lgFillHeight' => false,
 ])
 
 <div
-    class="relative aspect-video bg-black"
+    class="relative bg-slate-900 {{ $lgFillHeight ? 'aspect-video lg:aspect-auto lg:flex-1 lg:min-h-0' : 'aspect-video' }}"
     x-data="{ frozen: false }"
     wire:key="{{ $wireKey }}"
-    x-init="$nextTick(() => { $refs.video.load(); $refs.video.play().catch(() => {}); })"
+    x-init="$nextTick(() => { $refs.video?.load(); $refs.video?.play()?.catch(() => {}); })"
 >
     <video
         x-ref="video"
@@ -36,7 +37,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
         </svg>
         <button
-            @click="frozen = false; $refs.video.load(); $refs.video.play();"
+            @click="frozen = false; $refs.video?.load(); $refs.video?.play();"
             class="px-4 py-2 rounded-lg bg-white text-slate-800 text-sm font-semibold hover:bg-slate-100 transition-colors"
         >
             Relancer la vidéo

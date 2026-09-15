@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Models\Country;
 use Livewire\Attributes\Computed;
@@ -34,7 +34,7 @@ new class extends Component
             return null;
         }
 
-        return Country::with(['continent', 'info', 'lsfbVideos', 'internationalVideo'])
+        return Country::with(['lsfbVideos', 'internationalVideo'])
             ->find($this->countryId);
     }
 };
@@ -43,13 +43,18 @@ new class extends Component
 <div
     aria-live="polite"
     aria-atomic="true"
-    aria-label="Fiche du pays sélectionné"
-    class="scroll-mt-16"
+    aria-label="Vidéos du pays sélectionné"
     x-data="{
         selectedContinent: null,
+        selectedSubRegion: null,
         videoUrl: null,
         videoTitle: null,
         cloudBase: 'https://res.cloudinary.com/dmhdsjmzf/video/upload/',
+        subRegionNames: {
+            nord:     'Amérique du Nord',
+            centrale: 'Amérique centrale',
+            sud:      'Amérique du Sud',
+        },
         continentVideos: {
             Amerique: {
                 displayName: 'Amérique',
@@ -98,53 +103,39 @@ new class extends Component
             this.$refs.continentVideo?.pause();
             this.videoUrl = null;
             this.videoTitle = null;
+        },
+        get filteredRegions() {
+            const regions = this.currentContinent?.regions ?? [];
+            if (!this.selectedSubRegion) return regions.slice(0, 1);
+            const target = this.subRegionNames[this.selectedSubRegion];
+            return target ? regions.filter(r => r.name === target) : regions;
         }
     }"
     x-on:continent-selected.window="
         const name = $event.detail.continentName;
+        const subR = $event.detail.subRegion ?? null;
         selectedContinent = continentVideos[name] ? name : null;
+        selectedSubRegion = subR;
         clear();
+        if (!selectedContinent) return;
+        const cont = currentContinent;
+        if (cont.type === 'regions') {
+            const region = filteredRegions[0];
+            if (region) select(region.lsfb, region.name + ' — LSFB');
+        } else if (cont.type === 'videos') {
+            const id = (cont.lsfb ?? [])[0];
+            if (id) select(id, cont.displayName + ' — LSFB');
+        }
     "
-    x-on:country-selected.window="selectedContinent = null; clear();"
-    x-on:map-reset.window="selectedContinent = null; clear();"
+    x-on:country-selected.window="selectedContinent = null; selectedSubRegion = null; clear();"
+    x-on:map-reset.window="selectedContinent = null; selectedSubRegion = null; clear();"
+    class="flex flex-col gap-3 w-100"
 >
     @if ($this->country)
-        <div wire:key="state-country-{{ $this->country->id }}" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
+        <div wire:key="detail-{{ $this->country->id }}" class="flex flex-col gap-3 lg:overflow-y-auto lg:flex-1 lg:min-h-0">
 
-            {{-- Header --}}
-            <div class="bg-gradient-to-br from-indigo-600 to-indigo-500 px-5 py-4">
-                <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
-                    {{ $this->country->continent->name }}
-                </p>
-                <h2 class="text-white text-2xl font-bold leading-tight flex items-center gap-2">
-                    @if ($this->country->flag_path)
-                        <img
-                            src="{{ asset($this->country->flag_path) }}"
-                            alt=""
-                            aria-hidden="true"
-                            class="h-10 w-auto rounded shadow-sm"
-                        >
-                    @elseif ($this->country->iso2)
-                        <img
-                            src="https://flagcdn.com/64x48/{{ strtolower($this->country->iso2) }}.png"
-                            alt=""
-                            aria-hidden="true"
-                            class="h-10 w-auto rounded shadow-sm"
-                        >
-                    @endif
-                    <span>{{ $this->country->name }}</span>
-                </h2>
-                @if ($this->country->iso3)
-                    <span class="inline-block mt-1 text-xs font-mono text-indigo-300 bg-indigo-700/40 px-2 py-0.5 rounded">
-                        {{ $this->country->iso3 }}
-                    </span>
-                @endif
-            </div>
-
-            <div class="p-4 space-y-6">
-
-                {{-- LSFB Card --}}
-                @if ($this->country->lsfbVideos->isNotEmpty())
+            {{-- LSFB Card --}}
+            @if ($this->country->lsfbVideos->isNotEmpty())
                 <section
                     aria-labelledby="lsfb-heading"
                     class="rounded-lg border border-slate-200 overflow-hidden"
@@ -154,77 +145,66 @@ new class extends Component
                         <h3 id="lsfb-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</h3>
                     </div>
 
-                    @if ($this->country->lsfbVideos->count() > 1)
-                            {{-- Carousel --}}
-                            <div
-                                wire:key="lsfb-carousel-{{ $this->country->id }}"
-                                x-data="{
-                                    current: 0,
-                                    goTo(i) {
-                                        this.$el.querySelectorAll('video').forEach(v => v.pause());
-                                        this.current = i;
-                                        this.$nextTick(() => this.$el.querySelectorAll('video')[i].play());
-                                    }
-                                }"
-                                x-cloak
-                            >
-                                @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                                    <div x-show="current === {{ $index }}">
-                                        <x-video-player
-                                            :url="$lsfbVideo->cloudinary_url"
-                                            :thumbnail="$lsfbVideo->thumbnail_url"
-                                            :label="'Vidéo LSFB ' . ($index + 1) . ' — ' . $this->country->name"
-                                            :wire-key="'lsfb-carousel-video-' . $this->country->id . '-' . $index"
-                                        />
-                                    </div>
-                                @endforeach
-
-                                {{-- Carousel controls --}}
-                                <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-slate-200">
-                                    <button
-                                        @click="goTo(0)"
-                                        :disabled="current === 0"
-                                        :class="current === 0 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
-                                        class="text-sm font-medium transition-colors"
-                                        aria-label="Vidéo LSFB précédente"
-                                    >← Précédente</button>
-
-                                    <div class="flex gap-1.5" role="tablist" aria-label="Sélectionner une vidéo LSFB">
-                                        @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                                            <button
-                                                @click="goTo({{ $index }})"
-                                                :class="current === {{ $index }} ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'"
-                                                class="w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center"
-                                                role="tab"
-                                                :aria-selected="current === {{ $index }}"
-                                                aria-label="Vidéo LSFB {{ $index + 1 }}"
-                                            >{{ $index + 1 }}</button>
-                                        @endforeach
-                                    </div>
-
-                                    <button
-                                        @click="goTo(1)"
-                                        :disabled="current === 1"
-                                        :class="current === 1 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
-                                        class="text-sm font-medium transition-colors"
-                                        aria-label="Vidéo LSFB suivante"
-                                    >Suivante →</button>
-                                </div>
+                    @php $lsfbCount = $this->country->lsfbVideos->count(); @endphp
+                    <div
+                        wire:key="lsfb-carousel-{{ $this->country->id }}"
+                        x-data="{
+                            total: {{ $lsfbCount }},
+                            current: 0,
+                            goTo(i) {
+                                this.$el.querySelectorAll('video').forEach(v => v.pause());
+                                this.current = i;
+                                this.$nextTick(() => this.$el.querySelectorAll('video')[i]?.play());
+                            }
+                        }"
+                    >
+                        @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
+                            <div x-show="current === {{ $index }}" class="w-full max-w-[488.66px]">
+                                <x-video-player
+                                    :url="$lsfbVideo->cloudinary_url"
+                                    :thumbnail="$lsfbVideo->thumbnail_url"
+                                    :label="'Vidéo LSFB ' . ($index + 1) . ' — ' . $this->country->name"
+                                    :wire-key="'lsfb-carousel-video-' . $this->country->id . '-' . $index"
+                                />
                             </div>
-                        @else
-                            @php $lsfbVideo = $this->country->lsfbVideos->first(); @endphp
-                            <x-video-player
-                                :url="$lsfbVideo->cloudinary_url"
-                                :thumbnail="$lsfbVideo->thumbnail_url"
-                                :label="'Vidéo LSFB — ' . $this->country->name"
-                                :wire-key="'lsfb-video-' . $this->country->id"
-                            />
-                        @endif
-                </section>
-                @endif
+                        @endforeach
 
-                {{-- Signes Internationaux Card --}}
-                @if ($this->country->internationalVideo)
+                        <div x-show="total > 1" class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-slate-200">
+                            <button
+                                @click="goTo(0)"
+                                :disabled="current === 0"
+                                :class="current === 0 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
+                                class="text-sm font-medium transition-colors"
+                                aria-label="Vidéo LSFB précédente"
+                            >← Précédente</button>
+
+                            <div class="flex gap-1.5" role="tablist" aria-label="Sélectionner une vidéo LSFB">
+                                @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
+                                    <button
+                                        @click="goTo({{ $index }})"
+                                        :class="current === {{ $index }} ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'"
+                                        class="w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center"
+                                        role="tab"
+                                        :aria-selected="current === {{ $index }}"
+                                        aria-label="Vidéo LSFB {{ $index + 1 }}"
+                                    >{{ $index + 1 }}</button>
+                                @endforeach
+                            </div>
+
+                            <button
+                                @click="goTo(total - 1)"
+                                :disabled="current === total - 1"
+                                :class="current === total - 1 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
+                                class="text-sm font-medium transition-colors"
+                                aria-label="Vidéo LSFB suivante"
+                            >Suivante →</button>
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            {{-- Signes Internationaux Card --}}
+            @if ($this->country->internationalVideo)
                 <section
                     aria-labelledby="intl-heading"
                     class="rounded-lg border border-slate-200 overflow-hidden"
@@ -234,113 +214,43 @@ new class extends Component
                         <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
                     </div>
 
-                    <x-video-player
-                        :url="$this->country->internationalVideo->cloudinary_url"
-                        :thumbnail="$this->country->internationalVideo->thumbnail_url"
-                        :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
-                        :wire-key="'int-video-' . $this->country->id"
-                    />
+                    <div class="w-full max-w-[488.66px]">
+                        <x-video-player
+                            :url="$this->country->internationalVideo->cloudinary_url"
+                            :thumbnail="$this->country->internationalVideo->thumbnail_url"
+                            :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
+                            :wire-key="'int-video-' . $this->country->id"
+                        />
+                    </div>
                 </section>
-                @endif
+            @endif
 
-                {{-- Fiche informative --}}
-                @if ($this->country->info)
-                    @php
-                        $info = $this->country->info;
-                        $isSovereign = ! $info->entity_type || $info->entity_type === 'sovereign_state';
-                        $entityLabels = [
-                            'constituent_country'  => 'Nation constitutive',
-                            'autonomous_community' => 'Communauté autonome',
-                            'autonomous_city'      => 'Ville autonome',
-                            'autonomous_region'    => 'Région autonome',
-                            'administrative_region'=> 'Région administrative',
-                            'federal_subject'      => 'République fédérée',
-                            'geographic_entity'    => 'Entité géographique',
-                            'unrecognized_state'   => 'État non reconnu',
-                            'transnational_region' => 'Région transnationale',
-                        ];
-                    @endphp
-                    <section
-                        aria-labelledby="info-heading"
-                        class="rounded-lg border border-slate-200 overflow-hidden"
-                    >
-                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0" aria-hidden="true"></span>
-                            <h3 id="info-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Informations</h3>
-                        </div>
-                        <dl class="divide-y divide-slate-100">
-                            @unless ($isSovereign)
-                                <div class="flex items-center gap-3 px-4 py-2.5">
-                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Statut</dt>
-                                    <dd class="text-sm text-slate-800">{{ $entityLabels[$info->entity_type] ?? $info->entity_type }}</dd>
-                                </div>
-                                @if ($info->parent_country)
-                                    <div class="flex items-center gap-3 px-4 py-2.5">
-                                        <dt class="text-xs text-slate-400 w-24 shrink-0">Fait partie de</dt>
-                                        <dd class="text-sm text-slate-800">{{ $info->parent_country }}</dd>
-                                    </div>
-                                @endif
-                            @endunless
-                            @if ($info->capital)
-                                <div class="flex items-center gap-3 px-4 py-2.5">
-                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Capitale</dt>
-                                    <dd class="text-sm text-slate-800 font-medium">{{ $info->capital }}</dd>
-                                </div>
-                            @endif
-                            @if ($info->languages)
-                                <div class="flex items-center gap-3 px-4 py-2.5">
-                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Langue(s)</dt>
-                                    <dd class="text-sm text-slate-800">{{ implode(', ', array_column($info->languages, 'name')) }}</dd>
-                                </div>
-                            @endif
-                            @if ($info->population !== null)
-                                <div class="flex items-center gap-3 px-4 py-2.5">
-                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Population</dt>
-                                    <dd class="text-sm text-slate-800">
-                                        {{ $info->formatted_population }}
-                                        @if ($info->population_year)
-                                            <span class="text-xs text-slate-400 ml-1">({{ $info->population_year }})</span>
-                                        @endif
-                                    </dd>
-                                </div>
-                            @endif
-                            @if ($info->currency)
-                                <div class="flex items-center gap-3 px-4 py-2.5">
-                                    <dt class="text-xs text-slate-400 w-24 shrink-0">Monnaie</dt>
-                                    <dd class="text-sm text-slate-800 flex items-center gap-2">
-                                        @if ($info->currency_code)
-                                            <span class="font-mono text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{{ $info->currency_code }}</span>
-                                        @endif
-                                        {{ $info->currency }}
-                                    </dd>
-                                </div>
-                            @endif
-                        </dl>
-                    </section>
-                @endif
+            {{-- Aucune vidéo disponible --}}
+            @if ($this->country->lsfbVideos->isEmpty() && ! $this->country->internationalVideo)
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 py-8 text-center text-slate-400 text-sm">
+                    Aucune vidéo disponible pour ce pays.
+                </div>
+            @endif
 
-            </div>
         </div>
 
     @else
-        {{-- Panel de vidéos du continent sélectionné --}}
+        {{-- Panel vidéos du continent sélectionné --}}
         <div x-show="selectedContinent" x-cloak>
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
-                {{-- Header --}}
-                <div class="bg-gradient-to-br from-indigo-600 to-indigo-500 px-5 py-4">
-                    <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-0.5">Continent</p>
-                    <h2 class="text-white text-2xl font-bold leading-tight" x-text="currentContinent?.displayName"></h2>
-                    <p class="text-indigo-300 text-xs mt-1">Vidéos régionales</p>
+                <div class="px-4 py-3 border-b border-slate-100">
+                    <p class="text-xs text-slate-400 uppercase tracking-wide mb-0.5">Continent</p>
+                    <h2 class="text-base font-bold text-slate-800" x-text="currentContinent?.displayName"></h2>
                 </div>
 
                 {{-- Lecteur vidéo inline --}}
                 <div x-show="videoUrl" x-cloak>
-                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                         <span class="text-xs font-semibold text-slate-600 truncate pr-2" x-text="videoTitle"></span>
                         <button
                             @click="clear()"
-                            class="shrink-0 text-slate-400 hover:text-slate-700 transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100"
+                            class="shrink-0 text-slate-400 hover:text-slate-700 transition-colors w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-200"
                             aria-label="Fermer la vidéo"
                         >
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -348,98 +258,91 @@ new class extends Component
                             </svg>
                         </button>
                     </div>
-                    <div class="relative aspect-video bg-black">
+                    <div class="relative aspect-video bg-slate-900">
                         <video
                             x-ref="continentVideo"
                             class="absolute inset-0 w-full h-full object-contain"
-                            controls
-                            muted
-                            loop
-                            playsinline
-                            preload="metadata"
+                            controls muted loop playsinline preload="metadata"
                             :src="videoUrl"
                             :aria-label="videoTitle"
                         ></video>
                     </div>
                 </div>
 
-                {{-- Type "regions" (Amérique) : cartes par sous-région --}}
-                <div x-show="currentContinent?.type === 'regions'" class="p-4 space-y-2">
-                    <template x-for="region in (currentContinent?.regions ?? [])" :key="region.name">
-                        <div class="rounded-lg border border-slate-200 overflow-hidden">
-                            <div class="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                {{-- Régions (Amérique) --}}
+                <div x-show="currentContinent?.type === 'regions'" class="p-3 space-y-2">
+                    <template x-for="region in filteredRegions" :key="region.name">
+                        <div class="rounded-xl border border-slate-200 overflow-hidden">
+                            <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
                                 <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide" x-text="region.name"></p>
                             </div>
                             <div class="flex gap-2 p-2.5">
                                 <button
                                     @click="select(region.lsfb, region.name + ' — LSFB')"
-                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 min-h-[36px]"
                                     :aria-label="'Voir LSFB — ' + region.name"
                                 >LSFB</button>
                                 <button
                                     @click="select(region.intl, region.name + ' — Signes Internationaux')"
-                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 min-h-[36px]"
                                     :aria-label="'Voir Signes Internationaux — ' + region.name"
-                                >Signes Int.</button>
+                                >Signe International</button>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                {{-- Type "videos" (autres continents) : LSFB + International --}}
-                <div x-show="currentContinent?.type === 'videos'" class="p-4 space-y-2">
-
-                    {{-- LSFB --}}
-                    <div class="rounded-lg border border-slate-200 overflow-hidden">
-                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0" aria-hidden="true"></span>
+                {{-- Vidéos directes (autres continents) --}}
+                <div x-show="currentContinent?.type === 'videos'" class="p-3 space-y-2">
+                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                            <span class="text-indigo-500 font-bold" aria-hidden="true">•</span>
                             <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</p>
                         </div>
                         <div class="flex gap-2 p-2.5">
                             <template x-for="(id, index) in (currentContinent?.lsfb ?? [])" :key="id">
                                 <button
                                     @click="select(id, currentContinent.displayName + ' — LSFB' + (currentContinent.lsfb.length > 1 ? ' ' + (index + 1) : ''))"
-                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                                    :aria-label="'Voir LSFB ' + (currentContinent.lsfb.length > 1 ? (index + 1) + ' — ' : '— ') + currentContinent.displayName"
+                                    class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 min-h-[36px]"
                                     x-text="currentContinent.lsfb.length > 1 ? 'LSFB ' + (index + 1) : 'LSFB'"
                                 ></button>
                             </template>
                         </div>
                     </div>
 
-                    {{-- International (si disponible) --}}
-                    <div x-show="currentContinent?.intl" class="rounded-lg border border-slate-200 overflow-hidden">
-                        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
-                            <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</p>
+                    <div x-show="currentContinent?.intl" class="rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                            <span class="text-violet-500 font-bold" aria-hidden="true">•</span>
+                            <p class="text-xs font-semibold text-slate-600 uppercase tracking-wide">INT</p>
                         </div>
                         <div class="flex gap-2 p-2.5">
                             <button
                                 @click="currentContinent.intl && select(currentContinent.intl, currentContinent.displayName + ' — Signes Internationaux')"
-                                class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 min-h-[36px]"
                                 :aria-label="'Voir Signes Internationaux — ' + currentContinent?.displayName"
-                            >Signes Int.</button>
+                            >Signe International</button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
 
-        {{-- Empty state --}}
+        {{-- État vide --}}
         <div
             x-show="!selectedContinent"
-            class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col items-center justify-center gap-3 h-full min-h-[280px] px-8 text-center"
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3 min-h-[220px] px-8 text-center"
             role="status"
         >
-            <span class="text-5xl opacity-60" aria-hidden="true">🗺️</span>
+            <svg class="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
             <div>
-                <p class="text-slate-600 font-semibold">Sélectionnez un pays</p>
-                <p class="text-slate-400 text-sm mt-1 leading-relaxed">
-                    Cliquez sur un pays dans la carte<br>ou dans la liste ci-dessous.
+                <p class="text-slate-600 font-semibold text-sm">Sélectionnez un pays</p>
+                <p class="text-slate-400 text-xs mt-1 leading-relaxed">
+                    Cliquez sur la carte ou utilisez<br>la barre de recherche ci-dessus.
                 </p>
             </div>
         </div>
     @endif
 </div>
-

@@ -80,7 +80,7 @@ new class extends Component
                                 goTo(i) {
                                     this.$el.querySelectorAll('video').forEach(v => v.pause());
                                     this.current = i;
-                                    this.$nextTick(() => this.$el.querySelectorAll('video')[i].play());
+                                    this.$nextTick(() => this.$el.querySelectorAll('video')[i]?.play());
                                 }
                             }"
                             x-cloak

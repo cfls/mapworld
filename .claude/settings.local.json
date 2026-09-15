@@ -45,7 +45,12 @@
       "Bash(curl -s \"https://restcountries.com/v3.1/alpha/FRA\")",
       "Bash(curl -sL \"https://restcountries.com/v3.1/alpha/FRA\")",
       "Bash(curl -sL \"https://restcountries.com/docs/countries/legacy-api-deprecation\")",
-      "Bash(Start-Sleep -Seconds 30)"
+      "Bash(Start-Sleep -Seconds 30)",
+      "Bash(npm run *)",
+      "mcp__laravel-boost__get-absolute-url",
+      "Bash(git show *)",
+      "Bash(git ls-tree *)",
+      "Bash(git diff *)"
     ]
   },
   "enabledMcpjsonServers": [

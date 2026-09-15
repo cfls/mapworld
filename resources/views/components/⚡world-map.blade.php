@@ -38,98 +38,104 @@ new class extends Component
 ?>
 
 <div>
-    {{-- JSON data carriers: read once by the script on mount --}}
     <script type="application/json" id="world-map-countries">{!! json_encode($this->countriesByIso) !!}</script>
     <script type="application/json" id="world-map-coords">{!! json_encode($this->countriesById) !!}</script>
 
     <p class="sr-only">
         Carte mondiale interactive. Cliquez sur un pays pour afficher ses vidéos en langue des signes.
-        Vous pouvez également utiliser la barre de recherche et la liste des pays ci-dessous.
+        Vous pouvez également utiliser la barre de recherche ci-dessus.
     </p>
 
-    <div class="relative mt-10">
+    <div class="relative">
         <div
             wire:ignore
             id="world-map"
             role="application"
             aria-label="Carte mondiale interactive — sélectionnez un pays"
-            class="w-full rounded-xl shadow-md
-                   h-[300px]
-                   sm:h-[400px]
-                   md:h-[500px]
-                   lg:h-[650px]
-                   xl:h-[750px]"
+            class="w-full rounded-2xl shadow-sm border border-slate-200 z-0
+                   h-[42vh]
+                   sm:h-[45vh]
+                   md:h-[420px]
+                   lg:h-[520px]
+                   xl:h-[600px]"
         ></div>
 
-        {{-- Zoom controls --}}
-        <div wire:ignore class="absolute top-[52px] left-3 z-[500] flex flex-col rounded-lg shadow-md border border-slate-200 overflow-hidden">
-            <button
-                id="map-zoom-in"
-                type="button"
-                aria-label="Zoom avant"
-                class="w-8 h-8 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 text-lg font-semibold leading-none border-b border-slate-200 transition-colors"
-            >+</button>
-            <button
-                id="map-zoom-out"
-                type="button"
-                aria-label="Zoom arrière"
-                class="w-8 h-8 flex items-center justify-center bg-white hover:bg-slate-50 text-slate-700 text-lg font-semibold leading-none transition-colors"
-            >−</button>
-        </div>
+        {{-- Contrôles : zoom + reset + styles (colonne droite) --}}
+        <div wire:ignore class="absolute top-3 right-3 z-[500] flex flex-col gap-2">
 
-        {{-- Map style selector --}}
-        <div wire:ignore class="absolute top-[52px] right-3 z-[500] flex flex-col rounded-lg shadow-md border border-slate-200 overflow-hidden">
-            {{-- Satellite --}}
-            <button id="map-style-satellite" type="button" title="Satellite"
-                class="w-8 h-8 flex items-center justify-center border-b border-slate-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </button>
-            {{-- Clair --}}
-            <button id="map-style-light" type="button" title="Clair"
-                class="w-8 h-8 flex items-center justify-center border-b border-slate-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                </svg>
-            </button>
-            {{-- Sombre --}}
-            <button id="map-style-dark" type="button" title="Sombre"
-                class="w-8 h-8 flex items-center justify-center border-b border-slate-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-            </button>
-            {{-- Standard --}}
-            <button id="map-style-standard" type="button" title="Standard"
-                class="w-8 h-8 flex items-center justify-center border-b border-slate-200 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-10l6-3m0 0l4.553 2.276A1 1 0 0121 7.618v10.764a1 1 0 01-1.447.894L15 17m0-13v13" />
-                </svg>
-            </button>
-            {{-- Coloré --}}
-            <button id="map-style-colorful" type="button" title="Coloré"
-                class="w-8 h-8 flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 16 16">
-                    <rect x="1" y="1" width="6" height="6" rx="1" fill="#F06292"/>
-                    <rect x="9" y="1" width="6" height="6" rx="1" fill="#42A5F5"/>
-                    <rect x="1" y="9" width="6" height="6" rx="1" fill="#FFA726"/>
-                    <rect x="9" y="9" width="6" height="6" rx="1" fill="#66BB6A"/>
-                </svg>
-            </button>
+            {{-- Zoom + reset --}}
+            <div class="flex flex-col rounded-xl shadow-md border border-slate-200 overflow-hidden bg-white">
+                <button
+                    id="map-zoom-in"
+                    type="button"
+                    aria-label="Zoom avant"
+                    class="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-lg font-semibold leading-none border-b border-slate-200 transition-colors"
+                >+</button>
+                <button
+                    id="map-zoom-out"
+                    type="button"
+                    aria-label="Zoom arrière"
+                    class="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-50 text-lg font-semibold leading-none border-b border-slate-200 transition-colors"
+                >−</button>
+                <button
+                    id="map-reset-btn"
+                    type="button"
+                    aria-label="Réinitialiser la vue"
+                    class="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Sélecteur de style de carte --}}
+            <div class="flex flex-col rounded-xl shadow-md border border-slate-200 overflow-hidden bg-white">
+                <button id="map-style-satellite" type="button" title="Satellite"
+                    class="w-10 h-10 flex items-center justify-center border-b border-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+                <button id="map-style-light" type="button" title="Clair"
+                    class="w-10 h-10 flex items-center justify-center border-b border-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                    </svg>
+                </button>
+                <button id="map-style-dark" type="button" title="Sombre"
+                    class="w-10 h-10 flex items-center justify-center border-b border-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+                <button id="map-style-standard" type="button" title="Standard"
+                    class="w-10 h-10 flex items-center justify-center border-b border-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-10l6-3m0 0l4.553 2.276A1 1 0 0121 7.618v10.764a1 1 0 01-1.447.894L15 17m0-13v13" />
+                    </svg>
+                </button>
+                <button id="map-style-colorful" type="button" title="Coloré"
+                    class="w-10 h-10 flex items-center justify-center transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 16 16">
+                        <rect x="1" y="1" width="6" height="6" rx="1" fill="#F06292"/>
+                        <rect x="9" y="1" width="6" height="6" rx="1" fill="#42A5F5"/>
+                        <rect x="1" y="9" width="6" height="6" rx="1" fill="#FFA726"/>
+                        <rect x="9" y="9" width="6" height="6" rx="1" fill="#66BB6A"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
     #world-map .leaflet-interactive:focus { outline: none; }
+    #world-map { touch-action: pan-y; }
 </style>
 
 <script>
-    // Guard: run initialization only once per map container lifecycle.
-    // wire:ignore preserves the #world-map element across Livewire re-renders,
-    // so _leaflet_id persists and prevents double-initialization.
     const _mapEl = document.getElementById('world-map');
     if (_mapEl && !_mapEl._leaflet_id) {
         const countriesByIso = JSON.parse(
@@ -139,8 +145,34 @@ new class extends Component
             document.getElementById('world-map-coords').textContent
         );
 
+        const AMERICA_SUBREGIONS = {
+            nord:     new Set(['CAN', 'USA', 'MEX', 'GRL']),
+            centrale: new Set(['BLZ', 'CRI', 'SLV', 'GTM', 'HND', 'NIC', 'PAN',
+                               'CUB', 'HTI', 'DOM', 'JAM', 'TTO', 'ATG', 'BHS',
+                               'BRB', 'DMA', 'GRD', 'KNA', 'VCT', 'LCA', 'ABW',
+                               'CUW', 'PRI', 'GLP', 'MTQ', 'BLM', 'MAF']),
+            sud:      new Set(['ARG', 'BOL', 'BRA', 'CHL', 'COL', 'ECU', 'GUY',
+                               'GUF', 'PRY', 'PER', 'SUR', 'URY', 'VEN', 'FLK']),
+        };
+
+        const SUBREGION_VIEW = {
+            nord:     { center: [50, -95],  zoom: 3 },
+            centrale: { center: [17, -76],  zoom: 4 },
+            sud:      { center: [-15, -58], zoom: 3 },
+        };
+
+        // continentId → {center, zoom}  (IDs from DB: 1=Afrique 2=Amerique 3=Asie 4=Europe 5=Oceanie)
+        const CONTINENT_VIEW = {
+            1: { center: [5,   20],  zoom: 3 },
+            2: { center: [10, -80],  zoom: 3 },
+            3: { center: [35,  90],  zoom: 3 },
+            4: { center: [50,  15],  zoom: 4 },
+            5: { center: [-25, 145], zoom: 3 },
+        };
+
         let geojsonLayer = null;
         let selectedContinentId = null;
+        let activeSubRegionSet = null;
         let selectedLayer = null;
         let isColorfulMode = false;
         let territoryMarker = null;
@@ -178,13 +210,23 @@ new class extends Component
             [defaultStyle, dimmedStyle, hoverStyle, selectedStyle, transparentStyle].forEach(s => { s.color = color; });
         }
 
+        function isInActiveFilter(feature, country) {
+            if (selectedContinentId !== null && (!country || country.continentId !== selectedContinentId)) {
+                return false;
+            }
+            if (activeSubRegionSet !== null && !activeSubRegionSet.has(feature.id)) {
+                return false;
+            }
+            return true;
+        }
+
         function styleForFeature(feature) {
             const country = countriesByIso[feature.id];
             if (isColorfulMode) {
                 if (!country) {
                     return { fillColor: '#e2e8f0', weight: 0.5, color: '#ffffff', fillOpacity: 0.4, opacity: 0.4 };
                 }
-                if (selectedContinentId !== null && country.continentId !== selectedContinentId) {
+                if (!isInActiveFilter(feature, country)) {
                     return { fillColor: '#cbd5e1', weight: 0.5, color: '#ffffff', fillOpacity: 0.3, opacity: 0.4 };
                 }
                 return { fillColor: colorForFeature(feature.id), weight: 0.5, color: '#ffffff', fillOpacity: 1, opacity: 1 };
@@ -193,7 +235,7 @@ new class extends Component
                 return transparentStyle;
             }
             if (!country) return dimmedStyle;
-            return country.continentId === selectedContinentId ? defaultStyle : dimmedStyle;
+            return isInActiveFilter(feature, country) ? defaultStyle : dimmedStyle;
         }
 
         function onEachFeature(feature, layer) {
@@ -202,7 +244,7 @@ new class extends Component
             layer.on({
                 mouseover(e) {
                     if (!country) return;
-                    if (selectedContinentId !== null && country.continentId !== selectedContinentId) return;
+                    if (!isInActiveFilter(feature, country)) return;
                     if (e.target === selectedLayer) return;
                     if (isColorfulMode) {
                         e.target.setStyle({
@@ -220,7 +262,7 @@ new class extends Component
                     if (e.target === selectedLayer) return;
                     geojsonLayer.resetStyle(e.target);
                     if (!isColorfulMode && selectedContinentId !== null) {
-                        if (!country || country.continentId !== selectedContinentId) {
+                        if (!isInActiveFilter(feature, country)) {
                             e.target.setStyle(dimmedStyle);
                         }
                     }
@@ -262,7 +304,7 @@ new class extends Component
             zoomControl: false,
         });
 
-        // --- Map style system ---
+        // --- Système de styles de carte ---
         const MAP_STYLES = {
             satellite: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -301,7 +343,6 @@ new class extends Component
 
             isColorfulMode = styleKey === 'colorful';
             localStorage.setItem(STYLE_KEY, styleKey);
-
             map.getContainer().style.background = isColorfulMode ? '#ffffff' : '';
 
             if (!isColorfulMode) {
@@ -324,9 +365,9 @@ new class extends Component
                 if (!btn) return;
                 if (key === styleKey) {
                     btn.classList.remove('bg-white', 'text-slate-700', 'hover:bg-slate-50');
-                    btn.classList.add('bg-indigo-600', 'text-white');
+                    btn.classList.add('bg-blue-600', 'text-white');
                 } else {
-                    btn.classList.remove('bg-indigo-600', 'text-white');
+                    btn.classList.remove('bg-blue-600', 'text-white');
                     btn.classList.add('bg-white', 'text-slate-700', 'hover:bg-slate-50');
                 }
             });
@@ -337,10 +378,13 @@ new class extends Component
         Object.keys(MAP_STYLES).forEach(key => {
             document.getElementById(`map-style-${key}`)?.addEventListener('click', () => applyMapStyle(key));
         });
-        // --- end map style system ---
 
         document.getElementById('map-zoom-in')?.addEventListener('click', () => map.zoomIn());
         document.getElementById('map-zoom-out')?.addEventListener('click', () => map.zoomOut());
+
+        document.getElementById('map-reset-btn')?.addEventListener('click', () => {
+            Livewire.dispatch('map-reset');
+        });
 
         fetch('/geojson/world-countries.json?v={{ filemtime(public_path("geojson/world-countries.json")) }}')
             .then(r => r.json())
@@ -351,7 +395,6 @@ new class extends Component
                 }).addTo(map);
             });
 
-        // Country selected (from list or map click): highlight green and fly to it
         Livewire.on('country-selected', ({ countryId }) => {
             if (!geojsonLayer) return;
             let layerFound = false;
@@ -379,11 +422,10 @@ new class extends Component
                 if (!alreadySelected) {
                     try {
                         map.flyToBounds(layer.getBounds(), { maxZoom: 7, padding: [40, 40], duration: 0.8 });
-                    } catch (e) { /* layer may have no bounds (point feature) */ }
+                    } catch (e) {}
                 }
             });
 
-            // Territory without GeoJSON polygon: fly to stored coordinates and show a marker
             if (!layerFound) {
                 if (selectedLayer) {
                     geojsonLayer.resetStyle(selectedLayer);
@@ -408,12 +450,21 @@ new class extends Component
             }
         });
 
-        // Continent filter: reset view and update map styles without a server roundtrip
-        Livewire.on('continent-selected', ({ continentId }) => {
+        Livewire.on('continent-selected', ({ continentId, subRegion }) => {
             selectedContinentId = continentId ?? null;
+            activeSubRegionSet = subRegion ? (AMERICA_SUBREGIONS[subRegion] ?? null) : null;
             selectedLayer = null;
             clearTerritoryMarker();
-            map.flyTo([20, 0], 2, { duration: 0.8 });
+
+            const view = subRegion
+                ? SUBREGION_VIEW[subRegion]
+                : (selectedContinentId ? CONTINENT_VIEW[selectedContinentId] : null);
+            if (view) {
+                map.flyTo(view.center, view.zoom, { duration: 0.8 });
+            } else {
+                map.flyTo([20, 0], 2, { duration: 0.8 });
+            }
+
             if (!geojsonLayer) return;
             geojsonLayer.eachLayer(layer => {
                 if (!layer.feature) return;
@@ -421,8 +472,8 @@ new class extends Component
             });
         });
 
-        // Reset: fly back to world view and clear selection
         Livewire.on('map-reset', () => {
+            activeSubRegionSet = null;
             map.flyTo([20, 0], 2, { duration: 0.8 });
             clearTerritoryMarker();
             if (selectedLayer && geojsonLayer) {
