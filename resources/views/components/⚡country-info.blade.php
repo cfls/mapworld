@@ -125,13 +125,14 @@ new class extends Component
                 @if ($this->signLanguage)
                     <div class="flex items-baseline gap-2 min-w-0 sm:col-span-2">
                         <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Langue des signes</dt>
-                        <dd class="text-sm text-slate-800">
-                            {{ $this->signLanguage->name }}
-                            @if ($this->signLanguage->year_official)
-                                <span class="text-xs text-slate-400">(officielle depuis {{ $this->signLanguage->year_official }})</span>
-                            @endif
-                        </dd>
+                        <dd class="text-sm text-slate-800">{{ $this->signLanguage->name }}</dd>
                     </div>
+                    @if ($this->signLanguage->year_official)
+                        <div class="flex items-baseline gap-2 min-w-0">
+                            <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Reconnue en</dt>
+                            <dd class="text-sm text-slate-800">{{ $this->signLanguage->year_official }}</dd>
+                        </div>
+                    @endif
                 @endif
             </dl>
         </section>
