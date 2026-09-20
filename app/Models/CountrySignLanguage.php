@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CountrySignLanguage extends Model
 {
-    protected $fillable = ['country_id', 'name', 'year_official'];
+    protected $fillable = ['country_id', 'name', 'sigle', 'year_official'];
 
     public function country(): BelongsTo
     {

@@ -38,13 +38,13 @@ new class extends Component
     }
 
     #[Computed]
-    public function signLanguage()
+    public function signLanguages()
     {
         if (! $this->countryId) {
-            return null;
+            return collect();
         }
 
-        return Country::find($this->countryId)?->signLanguages()->first();
+        return Country::find($this->countryId)?->signLanguages()->orderBy('year_official')->get() ?? collect();
     }
 };
 ?>
@@ -122,17 +122,20 @@ new class extends Component
                     </div>
                 @endif
 
-                @if ($this->signLanguage)
-                    <div class="flex items-baseline gap-2 min-w-0 sm:col-span-2">
-                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Langue des signes</dt>
-                        <dd class="text-sm text-slate-800">{{ $this->signLanguage->name }}</dd>
+                @if ($this->signLanguages->isNotEmpty())
+                    <div class="flex gap-2 min-w-0 sm:col-span-2">
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28 pt-0.5">Langue(s) des signes</dt>
+                        <dd class="text-sm text-slate-800 space-y-1">
+                            @foreach ($this->signLanguages as $sl)
+                                <div>
+                                    <span>{{ $sl->name }}@if ($sl->sigle) <span class="text-slate-500">({{ $sl->sigle }})</span>@endif</span>
+                                    @if ($sl->year_official)
+                                        <div class="text-slate-500">— {{ $sl->year_official }}</div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </dd>
                     </div>
-                    @if ($this->signLanguage->year_official)
-                        <div class="flex items-baseline gap-2 min-w-0">
-                            <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Reconnue en</dt>
-                            <dd class="text-sm text-slate-800">{{ $this->signLanguage->year_official }}</dd>
-                        </div>
-                    @endif
                 @endif
             </dl>
         </section>
