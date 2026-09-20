@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
@@ -81,5 +82,10 @@ class Country extends Model
     public function marineAreas(): BelongsToMany
     {
         return $this->belongsToMany(MarineArea::class, 'marine_area_country');
+    }
+
+    public function signLanguages(): HasMany
+    {
+        return $this->hasMany(CountrySignLanguage::class);
     }
 }
