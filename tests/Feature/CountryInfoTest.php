@@ -11,19 +11,19 @@ uses(RefreshDatabase::class);
 
 // --- country-detail display ---
 
-test('country detail shows info section when country has info', function () {
+test('country info shows info section when country has info', function () {
     $continent = Continent::factory()->create(['name' => 'Europe', 'slug' => 'europe']);
     $country = Country::factory()->create(['continent_id' => $continent->id, 'name' => 'Belgique']);
     CountryInfo::factory()->create([
         'country_id' => $country->id,
         'capital' => 'Bruxelles',
-        'languages' => ['Français', 'Néerlandais'],
+        'languages' => [['name' => 'Français'], ['name' => 'Néerlandais']],
         'population' => 11600000,
         'currency' => 'Euro (EUR)',
         'population_year' => 2024,
     ]);
 
-    Livewire::test('country-detail')
+    Livewire::test('country-info')
         ->dispatch('country-selected', countryId: $country->id)
         ->assertSee('Bruxelles')
         ->assertSee('Français')
@@ -32,7 +32,7 @@ test('country detail shows info section when country has info', function () {
         ->assertSee('2024');
 });
 
-test('country detail formats population with french thousands separator', function () {
+test('country info formats population with french thousands separator', function () {
     $continent = Continent::factory()->create();
     $country = Country::factory()->create(['continent_id' => $continent->id]);
     CountryInfo::factory()->create([
@@ -40,26 +40,26 @@ test('country detail formats population with french thousands separator', functi
         'population' => 11600000,
     ]);
 
-    Livewire::test('country-detail')
+    Livewire::test('country-info')
         ->dispatch('country-selected', countryId: $country->id)
         ->assertSee('11'."\u{00A0}".'600'."\u{00A0}".'000');
 });
 
-test('country detail shows no info section when country has no info', function () {
+test('country info shows nothing when country has no info', function () {
     $continent = Continent::factory()->create();
     $country = Country::factory()->create(['continent_id' => $continent->id]);
 
-    Livewire::test('country-detail')
+    Livewire::test('country-info')
         ->dispatch('country-selected', countryId: $country->id)
-        ->assertDontSee('Informations');
+        ->assertDontSee('INFO');
 });
 
-test('country detail shows lsfb fallback when no video uploaded', function () {
+test('country detail shows no-video message when country has no videos', function () {
     $country = Country::factory()->create();
 
     Livewire::test('country-detail')
         ->dispatch('country-selected', countryId: $country->id)
-        ->assertSee('Vidéo LSFB pas encore disponible');
+        ->assertSee('Aucune vidéo disponible pour ce pays');
 });
 
 // --- CountryInfo model ---
