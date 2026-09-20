@@ -4,8 +4,12 @@ namespace App\Models;
 
 use App\Enums\SignVideoType;
 use Database\Factories\MarineAreaFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
@@ -15,11 +19,35 @@ class MarineArea extends Model
     use HasFactory;
 
     protected $fillable = [
+        'parent_id',
         'name',
         'slug',
         'geojson_id',
         'type',
+        'ocean_group',
+        'surface_km2',
+        'max_depth_m',
     ];
+
+    protected $casts = [
+        'surface_km2' => 'integer',
+        'max_depth_m' => 'integer',
+    ];
+
+    public function parentArea(): BelongsTo
+    {
+        return $this->belongsTo(MarineArea::class, 'parent_id');
+    }
+
+    public function childAreas(): HasMany
+    {
+        return $this->hasMany(MarineArea::class, 'parent_id');
+    }
+
+    public function coastalCountries(): BelongsToMany
+    {
+        return $this->belongsToMany(Country::class, 'marine_area_country');
+    }
 
     public function signVideos(): MorphMany
     {
@@ -43,5 +71,30 @@ class MarineArea extends Model
     {
         return $this->morphOne(SignVideo::class, 'signable')
             ->where('type', SignVideoType::International->value);
+    }
+
+    protected function formattedSurface(): Attribute
+    {
+        return Attribute::get(function () {
+            if ($this->surface_km2 === null) {
+                return null;
+            }
+
+            return number_format($this->surface_km2, 0, ',', "\u{00A0}");
+        });
+    }
+
+    protected function oceanGroupLabel(): Attribute
+    {
+        return Attribute::get(function () {
+            return match ($this->ocean_group) {
+                'pacifique' => 'Pacifique',
+                'atlantique' => 'Atlantique',
+                'indien' => 'Indien',
+                'arctique' => 'Arctique',
+                'austral' => 'Austral',
+                default => null,
+            };
+        });
     }
 }
