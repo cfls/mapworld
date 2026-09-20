@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\MarineArea;
-use App\Models\SignVideo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -13,27 +12,24 @@ test('marine list shows placeholder when search is empty', function () {
 });
 
 test('marine list search filters by name', function () {
-    $area = MarineArea::factory()->create(['name' => 'mer Méditerranée', 'slug' => 'mer-mediterranee']);
-    SignVideo::factory()->lsfb()->forMarineArea($area)->create();
+    MarineArea::factory()->create(['name' => 'mer Méditerranée', 'slug' => 'mer-mediterranee']);
 
     Livewire::test('marine-list')
         ->set('search', 'Médit')
         ->assertSee('mer Méditerranée');
 });
 
-test('marine list search does not show areas without videos', function () {
+test('marine list search shows areas even without videos', function () {
     MarineArea::factory()->create(['name' => 'mer sans vidéo', 'slug' => 'mer-sans-video']);
 
     Livewire::test('marine-list')
         ->set('search', 'mer sans')
-        ->assertDontSee('mer sans vidéo');
+        ->assertSee('mer sans vidéo');
 });
 
 test('marine list filters by ocean group', function () {
-    $pac = MarineArea::factory()->create(['name' => 'mer Pacifique', 'slug' => 'mer-pacifique', 'ocean_group' => 'pacifique']);
-    $atl = MarineArea::factory()->create(['name' => 'mer Atlantique', 'slug' => 'mer-atlantique', 'ocean_group' => 'atlantique']);
-    SignVideo::factory()->lsfb()->forMarineArea($pac)->create();
-    SignVideo::factory()->lsfb()->forMarineArea($atl)->create();
+    MarineArea::factory()->create(['name' => 'mer Pacifique', 'slug' => 'mer-pacifique', 'ocean_group' => 'pacifique']);
+    MarineArea::factory()->create(['name' => 'mer Atlantique', 'slug' => 'mer-atlantique', 'ocean_group' => 'atlantique']);
 
     Livewire::test('marine-list')
         ->dispatch('ocean-group-selected', group: 'pacifique')
@@ -44,7 +40,6 @@ test('marine list filters by ocean group', function () {
 
 test('marine list select area dispatches marine-area-selected', function () {
     $area = MarineArea::factory()->create(['name' => 'océan Indien', 'slug' => 'ocean-indien']);
-    SignVideo::factory()->lsfb()->forMarineArea($area)->create();
 
     Livewire::test('marine-list')
         ->call('selectArea', $area->id)

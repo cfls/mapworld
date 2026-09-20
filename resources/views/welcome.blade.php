@@ -88,7 +88,7 @@
                 </p>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div x-show="mapMode === 'pays'" class="flex items-center gap-2 shrink-0">
                 <a href="https://cfls.be/boutique/l-europe"
                    target="_blank"
                    rel="noopener noreferrer"
@@ -112,11 +112,13 @@
 
         {{-- Ligne 2 : filtres selon le mode actif --}}
         <div class="px-4 sm:px-6 lg:px-8 py-2 border-t border-slate-100">
-            <div x-show="mapMode === 'pays'" x-cloak>
+            <div x-show="mapMode === 'pays'" x-cloak class="space-y-2">
                 <livewire:continent-filter />
+                <livewire:country-list />
             </div>
-            <div x-show="mapMode === 'mers'" x-cloak>
+            <div x-show="mapMode === 'mers'" x-cloak class="space-y-2">
                 <livewire:ocean-filter />
+                <livewire:marine-list />
             </div>
         </div>
     </header>
@@ -136,9 +138,6 @@
     >
         {{-- Pays mode --}}
         <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak class="space-y-3">
-
-            {{-- Barre de pays / buscador --}}
-            <livewire:country-list />
 
             {{-- Grille : mapa (60%) + détail (40%) --}}
             <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">
@@ -161,9 +160,6 @@
 
         {{-- Mers et océans mode --}}
         <div id="panel-mers" x-show="mapMode === 'mers'" x-cloak class="space-y-3">
-
-            {{-- Barre de recherche --}}
-            <livewire:marine-list />
 
             {{-- Grille : carte (60%) + fiche (40%) --}}
             <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">

@@ -92,6 +92,7 @@ new class extends Component
 
         let geojsonLayer = null;
         let selectedLayer = null;
+        let selectedAreaId = null;
 
         const defaultStyle  = { fillColor: '#0284c7', weight: 1,   color: '#ffffff', fillOpacity: 0.25, opacity: 0.5 };
         const hoverStyle    = { fillColor: '#0369a1', weight: 1.5, color: '#ffffff', fillOpacity: 0.45, opacity: 0.8 };
@@ -168,6 +169,7 @@ new class extends Component
                     if (!area) return;
                     if (selectedLayer) geojsonLayer.resetStyle(selectedLayer);
                     selectedLayer = e.target;
+                    selectedAreaId = area.id;
                     e.target.setStyle(selectedStyle);
                     e.target.getElement()?.blur();
                     try {
@@ -246,6 +248,28 @@ new class extends Component
                     onEachFeature,
                 }).addTo(map);
             });
+
+        Livewire.on('marine-area-selected', ({ marineAreaId }) => {
+            if (!geojsonLayer || selectedAreaId === marineAreaId) { return; }
+
+            let targetNeId = null;
+            for (const [neId, area] of Object.entries(marineAreasByGeoJsonId)) {
+                if (area.id === marineAreaId) { targetNeId = neId; break; }
+            }
+            if (!targetNeId) { return; }
+
+            geojsonLayer.eachLayer(layer => {
+                const neId = String(layer.feature?.properties?.ne_id ?? '');
+                if (neId !== targetNeId) { return; }
+                if (selectedLayer) { geojsonLayer.resetStyle(selectedLayer); }
+                selectedLayer = layer;
+                selectedAreaId = marineAreaId;
+                layer.setStyle(selectedStyle);
+                try {
+                    map.flyToBounds(layer.getBounds(), { maxZoom: 5, padding: [40, 40], duration: 0.8 });
+                } catch (_) {}
+            });
+        });
 
         window.addEventListener('resize', () => map?.invalidateSize());
         window.addEventListener('map-mode-changed', (e) => {

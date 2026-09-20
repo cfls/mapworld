@@ -69,7 +69,6 @@ new class extends Component
         }
 
         return MarineArea::select('id', 'name', 'slug', 'type', 'ocean_group')
-            ->whereHas('signVideos')
             ->when($this->selectedOceanGroup, fn ($q) => $q->where('ocean_group', $this->selectedOceanGroup))
             ->where('name', 'like', "%{$this->search}%")
             ->orderBy('name')
@@ -103,9 +102,10 @@ new class extends Component
                 e.preventDefault();
                 this.focused = Math.max(this.focused - 1, 0);
                 items[this.focused]?.scrollIntoView({ block: 'nearest' });
-            } else if (e.key === 'Enter' && this.focused >= 0) {
+            } else if (e.key === 'Enter') {
                 e.preventDefault();
-                items[this.focused]?.click();
+                const target = this.focused >= 0 ? items[this.focused] : items[0];
+                target?.click();
             } else if (e.key === 'Escape') {
                 this.closeSearch();
             }
