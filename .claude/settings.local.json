@@ -56,7 +56,8 @@
       "mcp__plugin_context-mode_context-mode__ctx_search",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(grep -n '$wire\\\\|dispatch\\\\|marine-area' resources/views/components/⚡ocean-map.blade.php)"
+      "Bash(grep -n '$wire\\\\|dispatch\\\\|marine-area' resources/views/components/⚡ocean-map.blade.php)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute_file"
     ]
   },
   "enabledMcpjsonServers": [

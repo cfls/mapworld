@@ -554,6 +554,78 @@ class CountryInfoTerritoriesSeeder extends Seeder
                 'entity_type' => 'unrecognized_state',
                 'parent_country' => null,
             ],
+
+            // Territoires caribéens (lot final production)
+            [
+                'name' => 'Curaçao',
+                'capital' => 'Willemstad',
+                'languages' => [
+                    ['code' => 'pap', 'name' => 'Papiamento', 'native_name' => 'Papiamentu'],
+                    ['code' => 'nl', 'name' => 'Néerlandais', 'native_name' => 'Nederlands'],
+                    ['code' => 'en', 'name' => 'Anglais', 'native_name' => 'English'],
+                ],
+                'population' => 153_671,
+                'currency' => 'florin antillais néerlandais',
+                'currency_code' => 'ANG',
+                'population_year' => 2023,
+                'entity_type' => 'autonomous_country',
+                'parent_country' => 'Pays-Bas',
+            ],
+            [
+                'name' => 'Aruba',
+                'capital' => 'Oranjestad',
+                'languages' => [
+                    ['code' => 'pap', 'name' => 'Papiamento', 'native_name' => 'Papiamento'],
+                    ['code' => 'nl', 'name' => 'Néerlandais', 'native_name' => 'Nederlands'],
+                ],
+                'population' => 106_537,
+                'currency' => 'florin arubais',
+                'currency_code' => 'AWG',
+                'population_year' => 2023,
+                'entity_type' => 'autonomous_country',
+                'parent_country' => 'Pays-Bas',
+            ],
+            [
+                'name' => 'Saint-Barthélemy',
+                'capital' => 'Gustavia',
+                'languages' => [
+                    ['code' => 'fr', 'name' => 'Français', 'native_name' => 'français'],
+                ],
+                'population' => 10_585,
+                'currency' => 'euro',
+                'currency_code' => 'EUR',
+                'population_year' => 2022,
+                'entity_type' => 'geographic_entity',
+                'parent_country' => 'France',
+            ],
+            [
+                'name' => 'Saint-Martin',
+                'capital' => 'Marigot',
+                'languages' => [
+                    ['code' => 'fr', 'name' => 'Français', 'native_name' => 'français'],
+                ],
+                'population' => 32_489,
+                'currency' => 'euro',
+                'currency_code' => 'EUR',
+                'population_year' => 2022,
+                'entity_type' => 'geographic_entity',
+                'parent_country' => 'France',
+            ],
+
+            // Territoire français du Pacifique
+            [
+                'name' => 'Nouvelle-Calédonie',
+                'capital' => 'Nouméa',
+                'languages' => [
+                    ['code' => 'fr', 'name' => 'Français', 'native_name' => 'français'],
+                ],
+                'population' => 270_000,
+                'currency' => 'franc CFP',
+                'currency_code' => 'XPF',
+                'population_year' => 2023,
+                'entity_type' => 'geographic_entity',
+                'parent_country' => 'France',
+            ],
         ];
     }
 }
