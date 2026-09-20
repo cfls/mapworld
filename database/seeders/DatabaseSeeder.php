@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             CountrySeeder::class,
             CountryInfoTerritoriesSeeder::class,
             MarineAreaSeeder::class,
+            MarineAreaDataSeeder::class,
             AdminUserSeeder::class,
         ]);
     }
