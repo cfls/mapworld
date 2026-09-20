@@ -9,11 +9,11 @@ new class extends Component
     #[Computed]
     public function marineAreasByGeoJsonId(): array
     {
-        return MarineArea::select('id', 'name', 'geojson_id', 'type')
+        return MarineArea::select('id', 'name', 'geojson_id', 'type', 'ocean_group')
             ->whereNotNull('geojson_id')
             ->get()
             ->keyBy('geojson_id')
-            ->map(fn ($a) => ['id' => $a->id, 'name' => $a->name, 'type' => $a->type])
+            ->map(fn ($a) => ['id' => $a->id, 'name' => $a->name, 'type' => $a->type, 'ocean_group' => $a->ocean_group])
             ->all();
     }
 };
@@ -96,12 +96,32 @@ new class extends Component
         const defaultStyle  = { fillColor: '#0284c7', weight: 1,   color: '#ffffff', fillOpacity: 0.25, opacity: 0.5 };
         const hoverStyle    = { fillColor: '#0369a1', weight: 1.5, color: '#ffffff', fillOpacity: 0.45, opacity: 0.8 };
         const selectedStyle = { fillColor: '#0c4a6e', weight: 1.5, color: '#ffffff', fillOpacity: 0.65, opacity: 0.9 };
+        const dimmedStyle   = { fillColor: '#94a3b8', weight: 0.5, color: '#ffffff', fillOpacity: 0.08, opacity: 0.2 };
         const unknownStyle  = { fillColor: '#94a3b8', weight: 0.5, color: '#ffffff', fillOpacity: 0.05, opacity: 0.2 };
+
+        let activeOceanGroup = null;
 
         function styleForFeature(feature) {
             const neId = String(feature.properties?.ne_id ?? '');
-            return marineAreasByGeoJsonId[neId] ? defaultStyle : unknownStyle;
+            const area = marineAreasByGeoJsonId[neId];
+            if (!area) { return unknownStyle; }
+            if (activeOceanGroup && area.ocean_group !== activeOceanGroup) { return dimmedStyle; }
+            return defaultStyle;
         }
+
+        function applyGroupFilter(group) {
+            activeOceanGroup = group;
+            if (!geojsonLayer) { return; }
+            geojsonLayer.eachLayer(layer => {
+                if (layer === selectedLayer) { return; }
+                const neId = String(layer.feature?.properties?.ne_id ?? '');
+                const area = marineAreasByGeoJsonId[neId];
+                if (!area) { layer.setStyle(unknownStyle); return; }
+                layer.setStyle(group && area.ocean_group !== group ? dimmedStyle : defaultStyle);
+            });
+        }
+
+        window.addEventListener('ocean-group-selected', e => applyGroupFilter(e.detail.group));
 
         function onEachFeature(feature, layer) {
             const neId = String(feature.properties?.ne_id ?? '');
