@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\SignVideoType;
-use App\Models\Country;
+use App\Models\MarineArea;
 use App\Models\SignVideo;
 use App\Services\CloudinaryService;
 use Livewire\Attributes\Computed;
@@ -13,7 +13,7 @@ new class extends Component
 {
     use WithFileUploads;
 
-    public Country $country;
+    public MarineArea $area;
 
     public bool $cloudinaryConfigured = false;
 
@@ -27,9 +27,9 @@ new class extends Component
     #[Validate(['internationalFile' => 'nullable|mimetypes:video/mp4,video/webm,video/ogg|max:204800'])]
     public $internationalFile = null;
 
-    public function mount(Country $country): void
+    public function mount(MarineArea $area): void
     {
-        $this->country = $country;
+        $this->area = $area;
         $this->cloudinaryConfigured = app(CloudinaryService::class)->isConfigured();
     }
 
@@ -37,8 +37,8 @@ new class extends Component
     #[Computed]
     public function lsfbVideos(): \Illuminate\Database\Eloquent\Collection
     {
-        return SignVideo::where('signable_type', Country::class)
-            ->where('signable_id', $this->country->id)
+        return SignVideo::where('signable_type', MarineArea::class)
+            ->where('signable_id', $this->area->id)
             ->where('type', SignVideoType::Lsfb->value)
             ->orderBy('cloudinary_public_id')
             ->get();
@@ -47,8 +47,8 @@ new class extends Component
     #[Computed]
     public function internationalVideo(): ?SignVideo
     {
-        return SignVideo::where('signable_type', Country::class)
-            ->where('signable_id', $this->country->id)
+        return SignVideo::where('signable_type', MarineArea::class)
+            ->where('signable_id', $this->area->id)
             ->where('type', SignVideoType::International->value)
             ->first();
     }
@@ -90,7 +90,6 @@ new class extends Component
         try {
             app(CloudinaryService::class)->deleteVideo($video->cloudinary_public_id);
         } catch (\Throwable) {
-            // Proceed with DB deletion even if Cloudinary call fails
         }
 
         $video->delete();
@@ -111,7 +110,7 @@ new class extends Component
 
             if ($type === SignVideoType::International) {
                 SignVideo::updateOrCreate(
-                    ['signable_type' => Country::class, 'signable_id' => $this->country->id, 'type' => $type->value],
+                    ['signable_type' => MarineArea::class, 'signable_id' => $this->area->id, 'type' => $type->value],
                     [
                         'cloudinary_public_id' => $result['public_id'],
                         'cloudinary_url' => $result['secure_url'],
@@ -121,8 +120,8 @@ new class extends Component
                 );
             } else {
                 SignVideo::create([
-                    'signable_type' => Country::class,
-                    'signable_id' => $this->country->id,
+                    'signable_type' => MarineArea::class,
+                    'signable_id' => $this->area->id,
                     'type' => $type->value,
                     'cloudinary_public_id' => $result['public_id'],
                     'cloudinary_url' => $result['secure_url'],
@@ -148,17 +147,16 @@ new class extends Component
 <div>
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-2 text-sm mb-6">
-        <a href="{{ route('admin.countries') }}" class="text-slate-500 hover:text-indigo-700">Pays</a>
+        <a href="{{ route('admin.marine-areas') }}" class="text-slate-500 hover:text-sky-700">Mers & Océans</a>
         <span class="text-slate-300">/</span>
-        <span class="text-slate-700 font-medium">{{ $this->country->name }}</span>
+        <span class="text-slate-700 font-medium">{{ $this->area->name }}</span>
         <span class="text-slate-300">/</span>
         <span class="text-slate-900 font-semibold">Vidéos</span>
     </div>
 
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-slate-900">
-            Vidéos — <span class="text-indigo-700">{{ $this->country->name }}</span>
-            <span class="text-slate-400 font-mono text-base ml-2">{{ $this->country->iso3 }}</span>
+            Vidéos — <span class="text-sky-700">{{ $this->area->name }}</span>
         </h2>
     </div>
 
@@ -187,7 +185,6 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
         </div>
     @endif
 
-    {{-- Video cards --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- LSFB --}}
@@ -241,9 +238,7 @@ CLOUDINARY_API_SECRET=your_api_secret</pre>
             @if ($cloudinaryConfigured)
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1.5">
-                            Ajouter une vidéo LSFB
-                        </label>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Ajouter une vidéo LSFB</label>
                         <input
                             type="file"
                             wire:model="lsfbFile"

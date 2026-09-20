@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Country;
+use App\Models\MarineArea;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -26,4 +27,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/countries/{country}/videos', function (Country $country) {
         return view('admin.videos', compact('country'));
     })->name('videos');
+    Route::view('/marine-areas', 'admin.marine-areas-list')->name('marine-areas');
+    Route::get('/marine-areas/{area}/videos', function (MarineArea $area) {
+        return view('admin.marine-areas', compact('area'));
+    })->name('marine-area-videos');
 });
