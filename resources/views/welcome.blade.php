@@ -34,6 +34,7 @@
             url.searchParams.set('mode', mode);
             if (mode === 'pays') { url.searchParams.delete('zone'); }
             history.pushState({}, '', url);
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('map-mode-changed', { detail: { mode } })));
         }
     }"
     x-on:switch-to-pays.window="

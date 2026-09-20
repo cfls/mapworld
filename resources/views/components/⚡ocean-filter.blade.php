@@ -35,10 +35,10 @@ new class extends Component
         }
     }"
     @keydown="handleKey"
+    @marine-area-selected.window="if ($event.detail?.marineAreaId) $wire.syncFromArea($event.detail.marineAreaId)"
 >
     @php
         $groups = [
-            null          => 'Tous',
             'pacifique'   => 'Pacifique',
             'atlantique'  => 'Atlantique',
             'indien'      => 'Indien',
@@ -47,9 +47,20 @@ new class extends Component
         ];
     @endphp
 
+    <button
+        wire:click="selectGroup(null)"
+        aria-pressed="{{ $selectedGroup === null ? 'true' : 'false' }}"
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 whitespace-nowrap shrink-0 min-h-[36px]
+               {{ $selectedGroup === null
+                   ? 'bg-sky-600 text-white shadow-sm'
+                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}"
+    >
+        Tous
+    </button>
+
     @foreach ($groups as $key => $label)
         <button
-            wire:click="selectGroup({{ $key === null ? 'null' : "'$key'" }})"
+            wire:click="selectGroup('{{ $key }}')"
             aria-pressed="{{ $selectedGroup === $key ? 'true' : 'false' }}"
             class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 whitespace-nowrap shrink-0 min-h-[36px]
                    {{ $selectedGroup === $key

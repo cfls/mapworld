@@ -113,6 +113,7 @@ new class extends Component
     }"
     @click.outside="closeSearch()"
     @keydown="navigate"
+    @ocean-group-selected.window="$wire.filterByGroup($event.detail?.group ?? null)"
     :class="isOpen ? 'pb-8' : ''"
     class="relative min-h-[56px]"
     role="search"

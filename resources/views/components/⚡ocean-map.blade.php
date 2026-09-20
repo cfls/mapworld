@@ -33,11 +33,11 @@ new class extends Component
             role="application"
             aria-label="Carte interactive des mers et océans"
             class="w-full rounded-xl shadow-md
-                   h-[300px]
-                   sm:h-[400px]
-                   md:h-[500px]
-                   lg:h-[650px]
-                   xl:h-[750px]"
+                   h-[42vh]
+                   sm:h-[45vh]
+                   md:h-[420px]
+                   lg:h-[520px]
+                   xl:h-[600px]"
         ></div>
 
         {{-- Zoom controls --}}
@@ -111,14 +111,39 @@ new class extends Component
 
         function applyGroupFilter(group) {
             activeOceanGroup = group;
+            if (selectedLayer) {
+                geojsonLayer?.resetStyle(selectedLayer);
+                selectedLayer = null;
+            }
             if (!geojsonLayer) { return; }
+
+            const groupLayers = [];
             geojsonLayer.eachLayer(layer => {
-                if (layer === selectedLayer) { return; }
                 const neId = String(layer.feature?.properties?.ne_id ?? '');
                 const area = marineAreasByGeoJsonId[neId];
                 if (!area) { layer.setStyle(unknownStyle); return; }
-                layer.setStyle(group && area.ocean_group !== group ? dimmedStyle : defaultStyle);
+                if (group && area.ocean_group !== group) {
+                    layer.setStyle(dimmedStyle);
+                } else {
+                    layer.setStyle(defaultStyle);
+                    if (group) { groupLayers.push(layer); }
+                }
             });
+
+            if (!group) {
+                map.flyTo([20, 0], 2, { duration: 0.8 });
+            } else if (groupLayers.length > 0) {
+                try {
+                    let bounds = null;
+                    groupLayers.forEach(layer => {
+                        const b = layer.getBounds();
+                        bounds = bounds ? bounds.extend(b) : b;
+                    });
+                    if (bounds?.isValid()) {
+                        map.flyToBounds(bounds, { maxZoom: 4, padding: [30, 30], duration: 0.8 });
+                    }
+                } catch (_) {}
+            }
         }
 
         window.addEventListener('ocean-group-selected', e => applyGroupFilter(e.detail.group));
@@ -223,5 +248,8 @@ new class extends Component
             });
 
         window.addEventListener('resize', () => map?.invalidateSize());
+        window.addEventListener('map-mode-changed', (e) => {
+            if (e.detail.mode === 'mers') { setTimeout(() => map?.invalidateSize(), 50); }
+        });
     }
 </script>
