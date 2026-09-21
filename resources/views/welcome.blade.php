@@ -39,7 +39,7 @@
     }"
     x-on:switch-to-pays.window="
         setMode('pays');
-        $nextTick(() => $dispatch('country-selected', { countryId: $event.detail.countryId }));
+        $nextTick(() => Livewire.dispatch('country-selected', { countryId: $event.detail.countryId }));
     "
 >
 

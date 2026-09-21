@@ -58,7 +58,8 @@
       "Bash(git commit -m ' *)",
       "Bash(grep -n '$wire\\\\|dispatch\\\\|marine-area' resources/views/components/⚡ocean-map.blade.php)",
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
-      "Bash(del \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\admin\\\\dashboard.blade.php\")"
+      "Bash(del \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\admin\\\\dashboard.blade.php\")",
+      "Bash(xargs grep -l \"MarineArea\\\\|marine_area\\\\|SeaMap\\\\|sea_map\")"
     ]
   },
   "enabledMcpjsonServers": [

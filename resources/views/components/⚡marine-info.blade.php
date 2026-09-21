@@ -15,6 +15,22 @@ new class extends Component
         $this->marineAreaId = $marineAreaId;
     }
 
+    #[On('ocean-group-selected')]
+    public function selectByGroup(?string $group): void
+    {
+        if (! $group) {
+            $this->marineAreaId = null;
+
+            return;
+        }
+
+        $oceans = MarineArea::where('ocean_group', $group)
+            ->where('type', 'ocean')
+            ->get();
+
+        $this->marineAreaId = $oceans->count() === 1 ? $oceans->first()->id : null;
+    }
+
     #[Computed]
     public function marineArea(): ?MarineArea
     {
