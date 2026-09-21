@@ -16,11 +16,32 @@ new class extends Component
             ->map(fn ($a) => ['id' => $a->id, 'name' => $a->name, 'type' => $a->type, 'ocean_group' => $a->ocean_group])
             ->all();
     }
+
+    #[Computed]
+    public function marineAreasWithCenter(): array
+    {
+        return MarineArea::select('id', 'name', 'ocean_group', 'center_lat', 'center_lng', 'center_zoom', 'linked_geojson_ids')
+            ->whereNull('geojson_id')
+            ->where(fn ($q) => $q->whereNotNull('center_lat')->orWhereNotNull('linked_geojson_ids'))
+            ->get()
+            ->map(fn ($a) => [
+                'id'               => $a->id,
+                'name'             => $a->name,
+                'ocean_group'      => $a->ocean_group,
+                'lat'              => $a->center_lat ? (float) $a->center_lat : null,
+                'lng'              => $a->center_lng ? (float) $a->center_lng : null,
+                'zoom'             => $a->center_zoom ?? 4,
+                'linked_ne_ids'    => $a->linked_geojson_ids ?? [],
+            ])
+            ->keyBy('id')
+            ->all();
+    }
 };
 ?>
 
 <div>
     <script type="application/json" id="ocean-map-areas">{!! json_encode($this->marineAreasByGeoJsonId) !!}</script>
+    <script type="application/json" id="ocean-map-centers">{!! json_encode($this->marineAreasWithCenter) !!}</script>
 
     <p class="sr-only">
         Carte interactive des mers et océans. Cliquez sur une zone pour afficher ses informations.
@@ -81,6 +102,30 @@ new class extends Component
 
 <style>
     #ocean-map .leaflet-interactive:focus { outline: none; }
+
+    .ocean-label {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        text-shadow:
+            0 0 3px rgba(0,0,0,0.9),
+            0 0 6px rgba(0,0,0,0.6),
+            1px 1px 2px rgba(0,0,0,0.8);
+        white-space: nowrap;
+        pointer-events: none;
+        letter-spacing: 0.02em;
+    }
+    .ocean-label::before { display: none; }
+
+    @keyframes ocean-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(12,74,110,0.5); }
+        70%  { box-shadow: 0 0 0 10px rgba(12,74,110,0); }
+        100% { box-shadow: 0 0 0 0 rgba(12,74,110,0); }
+    }
 </style>
 
 <script>
@@ -89,10 +134,14 @@ new class extends Component
         const marineAreasByGeoJsonId = JSON.parse(
             document.getElementById('ocean-map-areas').textContent
         );
+        const marineAreasWithCenter = JSON.parse(
+            document.getElementById('ocean-map-centers').textContent
+        );
 
         let geojsonLayer = null;
-        let selectedLayer = null;
+        let selectedLayers = [];
         let selectedAreaId = null;
+        let centerMarker = null;
 
         const defaultStyle  = { fillColor: '#0284c7', weight: 1,   color: '#ffffff', fillOpacity: 0.25, opacity: 0.5 };
         const hoverStyle    = { fillColor: '#0369a1', weight: 1.5, color: '#ffffff', fillOpacity: 0.45, opacity: 0.8 };
@@ -110,12 +159,16 @@ new class extends Component
             return defaultStyle;
         }
 
+        function clearSelectedLayers() {
+            selectedLayers.forEach(l => geojsonLayer?.resetStyle(l));
+            selectedLayers = [];
+        }
+
         function applyGroupFilter(group) {
             activeOceanGroup = group;
-            if (selectedLayer) {
-                geojsonLayer?.resetStyle(selectedLayer);
-                selectedLayer = null;
-            }
+            clearSelectedLayers();
+            clearCenterMarker();
+            selectedAreaId = null;
             if (!geojsonLayer) { return; }
 
             const groupLayers = [];
@@ -157,29 +210,30 @@ new class extends Component
             layer.on({
                 mouseover(e) {
                     if (!area) return;
-                    if (e.target === selectedLayer) return;
+                    if (selectedLayers.includes(e.target)) return;
                     e.target.setStyle(hoverStyle);
                 },
                 mouseout(e) {
-                    if (e.target === selectedLayer) return;
+                    if (selectedLayers.includes(e.target)) return;
                     geojsonLayer.resetStyle(e.target);
                     if (!area) e.target.setStyle(unknownStyle);
                 },
                 click(e) {
                     if (!area) return;
-                    if (selectedLayer) geojsonLayer.resetStyle(selectedLayer);
-                    selectedLayer = e.target;
+                    clearSelectedLayers();
+                    clearCenterMarker();
+                    selectedLayers = [e.target];
                     selectedAreaId = area.id;
                     e.target.setStyle(selectedStyle);
                     e.target.getElement()?.blur();
                     try {
                         map.flyToBounds(e.target.getBounds(), { maxZoom: 5, padding: [40, 40], duration: 0.8 });
                     } catch (_) {}
-                    $wire.$dispatch('marine-area-selected', { marineAreaId: area.id });
+                    window.dispatchEvent(new CustomEvent('marine-area-selected', { detail: { marineAreaId: area.id } }));
                 },
             });
 
-            if (label) layer.bindTooltip(label, { sticky: true });
+            if (label) layer.bindTooltip(label, { permanent: true, direction: 'center', className: 'ocean-label' });
         }
 
         const map = L.map('ocean-map', {
@@ -249,31 +303,81 @@ new class extends Component
                 }).addTo(map);
             });
 
-        Livewire.on('marine-area-selected', ({ marineAreaId }) => {
-            if (!geojsonLayer || selectedAreaId === marineAreaId) { return; }
+        function clearCenterMarker() {
+            if (centerMarker) { map.removeLayer(centerMarker); centerMarker = null; }
+        }
 
+        window.addEventListener('marine-area-selected', (e) => {
+            const marineAreaId = e.detail?.marineAreaId;
+            if (!marineAreaId || marineAreaId === selectedAreaId) { return; }
+
+            clearSelectedLayers();
+            clearCenterMarker();
+            selectedAreaId = marineAreaId;
+
+            // Case 1: single polygon match via geojson_id
             let targetNeId = null;
             for (const [neId, area] of Object.entries(marineAreasByGeoJsonId)) {
                 if (area.id === marineAreaId) { targetNeId = neId; break; }
             }
-            if (!targetNeId) { return; }
 
-            geojsonLayer.eachLayer(layer => {
-                const neId = String(layer.feature?.properties?.ne_id ?? '');
-                if (neId !== targetNeId) { return; }
-                if (selectedLayer) { geojsonLayer.resetStyle(selectedLayer); }
-                selectedLayer = layer;
-                selectedAreaId = marineAreaId;
-                layer.setStyle(selectedStyle);
-                try {
-                    map.flyToBounds(layer.getBounds(), { maxZoom: 5, padding: [40, 40], duration: 0.8 });
-                } catch (_) {}
+            if (targetNeId && geojsonLayer) {
+                geojsonLayer.eachLayer(layer => {
+                    if (String(layer.feature?.properties?.ne_id ?? '') !== targetNeId) { return; }
+                    selectedLayers.push(layer);
+                    layer.setStyle(selectedStyle);
+                });
+                if (selectedLayers.length) {
+                    try { map.flyToBounds(selectedLayers[0].getBounds(), { maxZoom: 5, padding: [40, 40], duration: 0.8 }); } catch (_) {}
+                }
+                return;
+            }
+
+            // Case 2: area without polygon — center marker or linked polygons
+            const centerArea = marineAreasWithCenter[marineAreaId];
+            if (!centerArea) { return; }
+
+            const linkedIds = centerArea.linked_ne_ids ?? [];
+
+            if (linkedIds.length && geojsonLayer) {
+                // Highlight all linked polygons and fly to their combined bounds
+                let bounds = null;
+                geojsonLayer.eachLayer(layer => {
+                    const neId = String(layer.feature?.properties?.ne_id ?? '');
+                    if (!linkedIds.includes(neId)) { return; }
+                    selectedLayers.push(layer);
+                    layer.setStyle(selectedStyle);
+                    try {
+                        const b = layer.getBounds();
+                        bounds = bounds ? bounds.extend(b) : b;
+                    } catch (_) {}
+                });
+                if (bounds?.isValid()) {
+                    map.flyToBounds(bounds, { maxZoom: 4, padding: [40, 40], duration: 0.9 });
+                }
+                return;
+            }
+
+            // Case 3: center-point marker fallback
+            if (centerArea.lat === null) { return; }
+
+            map.flyTo([centerArea.lat, centerArea.lng], centerArea.zoom, { duration: 0.9 });
+
+            const pulseIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:18px;height:18px;border-radius:50%;background:rgba(12,74,110,0.7);border:2px solid #fff;box-shadow:0 0 0 4px rgba(12,74,110,0.3);animation:ocean-pulse 1.5s infinite;"></div>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
             });
+            centerMarker = L.marker([centerArea.lat, centerArea.lng], { icon: pulseIcon })
+                .bindTooltip(centerArea.name, { permanent: false, sticky: true })
+                .addTo(map);
         });
 
         window.addEventListener('resize', () => map?.invalidateSize());
         window.addEventListener('map-mode-changed', (e) => {
             if (e.detail.mode === 'mers') { setTimeout(() => map?.invalidateSize(), 50); }
+            if (e.detail.mode !== 'mers') { clearCenterMarker(); selectedAreaId = null; }
         });
     }
 </script>

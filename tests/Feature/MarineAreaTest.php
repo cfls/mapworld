@@ -22,9 +22,9 @@ test('marine area has name, slug, geojson_id and type', function () {
 });
 
 test('marine area slug is unique', function () {
-    MarineArea::factory()->create(['slug' => 'mer-du-nord']);
+    MarineArea::factory()->create(['slug' => 'mer-test-unique']);
 
-    expect(fn () => MarineArea::factory()->create(['slug' => 'mer-du-nord']))
+    expect(fn () => MarineArea::factory()->create(['slug' => 'mer-test-unique']))
         ->toThrow(QueryException::class);
 });
 
