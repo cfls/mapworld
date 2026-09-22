@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SignVideoType;
 use Database\Factories\MarineAreaFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,12 +28,20 @@ class MarineArea extends Model
         'ocean_group',
         'surface_km2',
         'max_depth_m',
+        'status',
     ];
 
     protected $casts = [
         'surface_km2' => 'integer',
         'max_depth_m' => 'integer',
+        'status' => 'boolean',
     ];
+
+    /** @param  Builder<MarineArea>  $query */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where('status', true);
+    }
 
     public function parentArea(): BelongsTo
     {

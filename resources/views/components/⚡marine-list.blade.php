@@ -68,7 +68,8 @@ new class extends Component
             return collect();
         }
 
-        return MarineArea::select('id', 'name', 'slug', 'type', 'ocean_group')
+        return MarineArea::active()
+            ->select('id', 'name', 'slug', 'type', 'ocean_group')
             ->when($this->selectedOceanGroup, fn ($q) => $q->where('ocean_group', $this->selectedOceanGroup))
             ->where('name', 'like', "%{$this->search}%")
             ->orderBy('name')

@@ -40,10 +40,10 @@ new class extends Component
     @php
         $groups = [
             'pacifique'   => 'Pacifique',
-            'atlantique'  => 'Atlantique',
-            'indien'      => 'Indien',
+            // 'atlantique'  => 'Atlantique',
+            // 'indien'      => 'Indien',
             'arctique'    => 'Arctique',
-            'austral'     => 'Austral',
+            // 'austral'     => 'Austral',
         ];
     @endphp
 

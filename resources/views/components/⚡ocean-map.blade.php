@@ -9,7 +9,8 @@ new class extends Component
     #[Computed]
     public function marineAreasByGeoJsonId(): array
     {
-        return MarineArea::select('id', 'name', 'geojson_id', 'type', 'ocean_group')
+        return MarineArea::active()
+            ->select('id', 'name', 'geojson_id', 'type', 'ocean_group')
             ->whereNotNull('geojson_id')
             ->get()
             ->keyBy('geojson_id')
@@ -17,10 +18,25 @@ new class extends Component
             ->all();
     }
 
+    /** Maps ocean_group → [geojson_id, ...] for ALL areas (active or not), used for group bounds. */
+    #[Computed]
+    public function oceanGroupGeojsonIds(): array
+    {
+        return MarineArea::query()
+            ->select('ocean_group', 'geojson_id')
+            ->whereNotNull('geojson_id')
+            ->whereNotNull('ocean_group')
+            ->get()
+            ->groupBy('ocean_group')
+            ->map(fn ($items) => $items->pluck('geojson_id')->values()->all())
+            ->all();
+    }
+
     #[Computed]
     public function marineAreasWithCenter(): array
     {
-        return MarineArea::select('id', 'name', 'ocean_group', 'center_lat', 'center_lng', 'center_zoom', 'linked_geojson_ids')
+        return MarineArea::active()
+            ->select('id', 'name', 'ocean_group', 'center_lat', 'center_lng', 'center_zoom', 'linked_geojson_ids')
             ->whereNull('geojson_id')
             ->where(fn ($q) => $q->whereNotNull('center_lat')->orWhereNotNull('linked_geojson_ids'))
             ->get()
@@ -42,6 +58,7 @@ new class extends Component
 <div>
     <script type="application/json" id="ocean-map-areas">{!! json_encode($this->marineAreasByGeoJsonId) !!}</script>
     <script type="application/json" id="ocean-map-centers">{!! json_encode($this->marineAreasWithCenter) !!}</script>
+    <script type="application/json" id="ocean-group-geojson-ids">{!! json_encode($this->oceanGroupGeojsonIds) !!}</script>
 
     <p class="sr-only">
         Carte interactive des mers et océans. Cliquez sur une zone pour afficher ses informations.
@@ -137,6 +154,9 @@ new class extends Component
         const marineAreasWithCenter = JSON.parse(
             document.getElementById('ocean-map-centers').textContent
         );
+        const oceanGroupGeojsonIds = JSON.parse(
+            document.getElementById('ocean-group-geojson-ids').textContent
+        );
 
         let geojsonLayer = null;
         let selectedLayers = [];
@@ -186,18 +206,48 @@ new class extends Component
 
             if (!group) {
                 map.flyTo([20, 0], 2, { duration: 0.8 });
-            } else if (groupLayers.length > 0) {
+                return;
+            }
+
+            // Prefer active polygon layers; fall back to all DB polygons for the group
+            const boundsLayers = groupLayers.length > 0
+                ? groupLayers
+                : (() => {
+                    const fallbackIds = new Set(oceanGroupGeojsonIds[group] ?? []);
+                    const layers = [];
+                    geojsonLayer?.eachLayer(layer => {
+                        const neId = String(layer.feature?.properties?.ne_id ?? '');
+                        if (fallbackIds.has(neId)) { layers.push(layer); }
+                    });
+                    return layers;
+                })();
+
+            if (boundsLayers.length > 0) {
                 try {
                     let bounds = null;
-                    groupLayers.forEach(layer => {
+                    boundsLayers.forEach(layer => {
                         const b = layer.getBounds();
                         bounds = bounds ? bounds.extend(b) : b;
                     });
-                    if (bounds?.isValid()) {
+                    // Polygons crossing the antimeridian produce world-spanning bounds — use group center instead
+                    const lngSpan = bounds ? bounds.getEast() - bounds.getWest() : 0;
+                    if (bounds?.isValid() && lngSpan < 350) {
                         map.flyToBounds(bounds, { maxZoom: 4, padding: [30, 30], duration: 0.8 });
+                        return;
                     }
                 } catch (_) {}
             }
+
+            // Fallback: fly to hardcoded group center (for antimeridian-crossing oceans)
+            const GROUP_CENTERS = {
+                pacifique:  { lat:   5, lng: -160, zoom: 2 },
+                atlantique: { lat:  20, lng:  -30, zoom: 3 },
+                indien:     { lat: -20, lng:   75, zoom: 3 },
+                arctique:   { lat:  82, lng:    0, zoom: 3 },
+                austral:    { lat: -65, lng:    0, zoom: 3 },
+            };
+            const gc = GROUP_CENTERS[group];
+            if (gc) { map.flyTo([gc.lat, gc.lng], gc.zoom, { duration: 0.8 }); }
         }
 
         window.addEventListener('ocean-group-selected', e => applyGroupFilter(e.detail.group));
@@ -233,7 +283,7 @@ new class extends Component
                 },
             });
 
-            if (label) layer.bindTooltip(label, { permanent: true, direction: 'center', className: 'ocean-label' });
+            if (area) layer.bindTooltip(area.name, { permanent: true, direction: 'center', className: 'ocean-label' });
         }
 
         const map = L.map('ocean-map', {
@@ -294,6 +344,32 @@ new class extends Component
         document.getElementById('ocean-map-zoom-in')?.addEventListener('click', () => map.zoomIn());
         document.getElementById('ocean-map-zoom-out')?.addEventListener('click', () => map.zoomOut());
 
+        const centerLabelMarkers = [];
+
+        function addCenterLabels() {
+            Object.values(marineAreasWithCenter).forEach(area => {
+                if (area.lat === null || area.linked_ne_ids?.length) { return; }
+
+                const icon = L.divIcon({ className: '', html: '', iconSize: [0, 0] });
+                const marker = L.marker([area.lat, area.lng], { icon, interactive: false })
+                    .bindTooltip(area.name, { permanent: true, direction: 'center', className: 'ocean-label' })
+                    .addTo(map);
+
+                // Permanent tooltips are in the DOM immediately — make them clickable
+                const tooltipEl = marker.getTooltip()?.getElement();
+                if (tooltipEl) {
+                    tooltipEl.style.pointerEvents = 'auto';
+                    tooltipEl.style.cursor = 'pointer';
+                    tooltipEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        window.dispatchEvent(new CustomEvent('marine-area-selected', { detail: { marineAreaId: area.id } }));
+                    });
+                }
+
+                centerLabelMarkers.push(marker);
+            });
+        }
+
         fetch('/geojson/world-oceans.json?v={{ filemtime(public_path("geojson/world-oceans.json")) }}')
             .then(r => r.json())
             .then(data => {
@@ -301,6 +377,7 @@ new class extends Component
                     style: styleForFeature,
                     onEachFeature,
                 }).addTo(map);
+                addCenterLabels();
             });
 
         function clearCenterMarker() {
