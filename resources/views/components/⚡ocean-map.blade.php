@@ -342,7 +342,7 @@ new class extends Component
             });
         }
 
-        applyOceanStyle(localStorage.getItem(OCEAN_STYLE_KEY) || 'satellite');
+        applyOceanStyle(localStorage.getItem(OCEAN_STYLE_KEY) || 'standard');
         Object.keys(OCEAN_MAP_STYLES).forEach(key => {
             document.getElementById(`ocean-style-${key}`)?.addEventListener('click', () => applyOceanStyle(key));
         });
