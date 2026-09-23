@@ -192,6 +192,23 @@ new class extends Component
             }
         }
 
+        function flyToCountry(layer, countryId) {
+            try {
+                const bounds = layer.getBounds();
+                const spanLng = bounds.getEast() - bounds.getWest();
+                const spanLat = bounds.getNorth() - bounds.getSouth();
+                if (spanLng > 30 || spanLat > 25) {
+                    // Bounds too large (overseas territories) — use stored coordinates
+                    const coords = countriesById[countryId];
+                    if (coords) {
+                        map.flyTo([coords.lat, coords.lng], 6, { duration: 0.8 });
+                    }
+                } else {
+                    map.flyToBounds(bounds, { maxZoom: 7, padding: [40, 40], duration: 0.8 });
+                }
+            } catch (_) {}
+        }
+
         const defaultStyle     = { fillColor: '#4f46e5', weight: 1,   color: '#ffffff', fillOpacity: 0.35, opacity: 0.6  };
         const dimmedStyle      = { fillColor: '#94a3b8', weight: 0.5, color: '#ffffff', fillOpacity: 0.04, opacity: 0.2  };
         const hoverStyle       = { fillColor: '#3730a3', weight: 1.5, color: '#ffffff', fillOpacity: 0.55, opacity: 0.8  };
@@ -306,9 +323,7 @@ new class extends Component
                     e.target.setStyle(isGoogleMode ? googleSelectedStyle : selectedStyle);
                     e.target.getElement()?.blur();
                     if (!alreadySelected) {
-                        try {
-                            map.flyToBounds(e.target.getBounds(), { maxZoom: 7, padding: [40, 40], duration: 0.8 });
-                        } catch (_) {}
+                        flyToCountry(e.target, country.id);
                     }
                     $wire.$dispatch('country-selected', { countryId: country.id, continentId: country.continentId });
                 },
@@ -495,9 +510,7 @@ new class extends Component
                 layer.getElement()?.blur();
 
                 if (!alreadySelected) {
-                    try {
-                        map.flyToBounds(layer.getBounds(), { maxZoom: 7, padding: [40, 40], duration: 0.8 });
-                    } catch (e) {}
+                    flyToCountry(layer, countryId);
                 }
             });
 

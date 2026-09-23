@@ -63,7 +63,8 @@
       "Bash(C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Herd\\\\bin\\\\php84 artisan *)",
       "Bash(/c/Users/User/.config/herd/bin/php85/php.exe artisan *)",
       "Bash(/c/Users/User/.config/herd/bin/php85/php.exe *)",
-      "Bash(xargs grep -l \"MarineArea\\\\|marine\")"
+      "Bash(xargs grep -l \"MarineArea\\\\|marine\")",
+      "Bash(python *)"
     ]
   },
   "enabledMcpjsonServers": [
