@@ -190,5 +190,10 @@
 
     </main>
 
+    <footer class="text-center text-xs text-slate-500 font-bold py-4 border-t border-slate-200 mt-4">
+        &copy; 2026 &mdash; Propriété de <a href="https://cfls.be" target="_blank" rel="noopener noreferrer" class="text-slate-700 hover:text-blue-600 underline underline-offset-2 transition-colors">CFLS</a>
+        &mdash; Développé par l'équipe CFLS
+    </footer>
+
 </body>
 </html>
