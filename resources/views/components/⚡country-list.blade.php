@@ -132,7 +132,7 @@ new class extends Component
         x-show="!isOpen"
         @click="openSearch()"
         type="button"
-        class="w-full flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 sm:px-5 py-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all text-left min-h-[56px]"
+        class="w-full flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 sm:px-5 py-3 shadow-sm hover:border-sky-300 hover:shadow-md transition-all text-left min-h-[56px]"
         aria-label="{{ $selectedCountryName ? 'Pays sélectionné : ' . $selectedCountryName . '. Cliquer pour changer.' : 'Rechercher un pays' }}"
     >
         @if ($selectedCountryName)
@@ -169,11 +169,11 @@ new class extends Component
     <div
         x-show="isOpen"
         x-cloak
-        class="absolute left-0 right-0 top-0 bg-white border border-blue-400 rounded-2xl shadow-2xl overflow-hidden z-[600]"
+        class="absolute left-0 right-0 top-0 bg-white border border-sky-400 rounded-2xl shadow-2xl overflow-hidden z-[600]"
     >
         {{-- Champ de saisie --}}
         <div class="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-slate-100">
-            <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5 text-sky-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <input
@@ -216,8 +216,8 @@ new class extends Component
                         data-result
                         wire:click="selectCountry({{ $country->id }}, {{ $country->continent_id }})"
                         @click="closeSearch()"
-                        :class="focused === {{ $index }} ? 'bg-blue-50' : 'hover:bg-slate-50'"
-                        class="w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left transition-colors focus:outline-none focus:bg-blue-50 min-h-[44px]"
+                        :class="focused === {{ $index }} ? 'bg-sky-50' : 'hover:bg-slate-50'"
+                        class="w-full flex items-center gap-3 px-4 sm:px-5 py-3 text-left transition-colors focus:outline-none focus:bg-sky-50 min-h-[44px]"
                         aria-label="{{ $country->name }}"
                     >
                         @if ($country->flag_path)

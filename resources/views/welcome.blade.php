@@ -139,20 +139,24 @@
         {{-- Pays mode --}}
         <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak class="space-y-3">
 
-            {{-- Grille : mapa (60%) + détail (40%) --}}
-            <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">
+            {{-- Mobile: mapa → videos → info  /  Desktop: col1=(mapa+info) col2=videos --}}
+            <div class="flex flex-col lg:grid lg:grid-cols-[3fr_2fr] lg:grid-rows-[auto_auto] gap-3 lg:items-start">
 
-                {{-- Carte interactive + INFO --}}
-                <div class="space-y-3">
+                {{-- 1. Carte interactive --}}
+                <div class="order-1 lg:col-start-1 lg:row-start-1">
                     <livewire:world-map />
-                    <livewire:country-info />
                 </div>
 
-                {{-- Vidéos LSFB + INT --}}
-                <div class="space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
+                {{-- 2. Vidéos LSFB + INT --}}
+                <div class="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
                      :style="'top: ' + (headerHeight + 12) + 'px'"
                 >
                     <livewire:country-detail />
+                </div>
+
+                {{-- 3. Info pays --}}
+                <div class="order-3 lg:col-start-1 lg:row-start-2">
+                    <livewire:country-info />
                 </div>
             </div>
 
@@ -161,20 +165,24 @@
         {{-- Mers et océans mode --}}
         <div id="panel-mers" x-show="mapMode === 'mers'" x-cloak class="space-y-3">
 
-            {{-- Grille : carte (60%) + fiche (40%) --}}
-            <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">
+            {{-- Mobile: mapa → videos → info  /  Desktop: col1=(carte+info) col2=videos --}}
+            <div class="flex flex-col lg:grid lg:grid-cols-[3fr_2fr] lg:grid-rows-[auto_auto] gap-3 lg:items-start">
 
-                {{-- Carte + INFO --}}
-                <div class="space-y-3">
+                {{-- 1. Carte --}}
+                <div class="order-1 lg:col-start-1 lg:row-start-1">
                     <livewire:ocean-map />
-                    <livewire:marine-info />
                 </div>
 
-                {{-- Vidéos --}}
-                <div class="space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
+                {{-- 2. Vidéos --}}
+                <div class="order-2 lg:col-start-2 lg:row-start-1 lg:row-span-2 space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
                      :style="'top: ' + (headerHeight + 12) + 'px'"
                 >
                     <livewire:ocean-detail />
+                </div>
+
+                {{-- 3. Info mer --}}
+                <div class="order-3 lg:col-start-1 lg:row-start-2">
+                    <livewire:marine-info />
                 </div>
             </div>
 

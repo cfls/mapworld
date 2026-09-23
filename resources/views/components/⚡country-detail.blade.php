@@ -34,7 +34,7 @@ new class extends Component
             return null;
         }
 
-        return Country::with(['lsfbVideos', 'internationalVideo'])
+        return Country::with(['lsfbVideos', 'internationalVideo', 'continent'])
             ->find($this->countryId);
     }
 };
@@ -111,106 +111,130 @@ new class extends Component
     class="flex flex-col gap-3 w-full lg:flex-1 lg:min-h-0"
 >
     @if ($this->country)
-        <div wire:key="detail-{{ $this->country->id }}" class="flex flex-col gap-3 lg:overflow-y-auto lg:flex-1 lg:min-h-0">
+        @php $continentName = $this->country->continent?->name ?? ''; @endphp
+        <div wire:key="detail-{{ $this->country->id }}" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col lg:flex-1 lg:min-h-0">
 
-            {{-- LSFB Card --}}
-            @if ($this->country->lsfbVideos->isNotEmpty())
-                <section
-                    aria-labelledby="lsfb-heading"
-                    class="rounded-lg border border-slate-200 overflow-hidden"
-                >
-                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0" aria-hidden="true"></span>
-                        <h3 id="lsfb-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</h3>
-                    </div>
+            {{-- Header --}}
+            <div class="bg-gradient-to-br from-blue-600 to-blue-500 px-5 py-4 shrink-0">
+                <p class="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-0.5">
+                    PAYS{{ $continentName ? ' · ' . $continentName : '' }}
+                </p>
+                <h2 class="text-white text-2xl font-bold leading-tight flex items-center gap-2">
+                    @if ($this->country->flag_path)
+                        <img src="{{ asset($this->country->flag_path) }}" alt="" aria-hidden="true"
+                             class="h-7 w-auto rounded shadow-sm shrink-0 object-cover">
+                    @elseif ($this->country->iso2)
+                        <img src="https://flagcdn.com/48x36/{{ strtolower($this->country->iso2) }}.png" alt="" aria-hidden="true"
+                             class="h-7 w-auto rounded shadow-sm shrink-0">
+                    @else
+                        <span class="text-2xl" aria-hidden="true">🗺️</span>
+                    @endif
+                    <span>{{ $this->country->name }}</span>
+                </h2>
+            </div>
 
-                    @php $lsfbCount = $this->country->lsfbVideos->count(); @endphp
-                    <div
-                        wire:key="lsfb-carousel-{{ $this->country->id }}"
-                        x-data="{
-                            total: {{ $lsfbCount }},
-                            current: 0,
-                            goTo(i) {
-                                this.$el.querySelectorAll('video').forEach(v => v.pause());
-                                this.current = i;
-                                this.$nextTick(() => this.$el.querySelectorAll('video')[i]?.play());
-                            }
-                        }"
+            {{-- Content --}}
+            <div class="p-4 space-y-4 lg:overflow-y-auto lg:flex-1 lg:min-h-0">
+
+                {{-- LSFB Card --}}
+                @if ($this->country->lsfbVideos->isNotEmpty())
+                    <section
+                        aria-labelledby="lsfb-heading"
+                        class="rounded-lg border border-slate-200 overflow-hidden"
                     >
-                        @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                            <div x-show="current === {{ $index }}" class="w-full max-w-[488.66px] mx-auto">
-                                <x-video-player
-                                    :url="$lsfbVideo->cloudinary_url"
-                                    :thumbnail="$lsfbVideo->thumbnail_url"
-                                    :label="'Vidéo LSFB ' . ($index + 1) . ' — ' . $this->country->name"
-                                    :wire-key="'lsfb-carousel-video-' . $this->country->id . '-' . $index"
-                                />
-                            </div>
-                        @endforeach
-
-                        <div x-show="total > 1" class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-slate-200">
-                            <button
-                                @click="goTo(0)"
-                                :disabled="current === 0"
-                                :class="current === 0 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
-                                class="text-sm font-medium transition-colors"
-                                aria-label="Vidéo LSFB précédente"
-                            >← Précédente</button>
-
-                            <div class="flex gap-1.5" role="tablist" aria-label="Sélectionner une vidéo LSFB">
-                                @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
-                                    <button
-                                        @click="goTo({{ $index }})"
-                                        :class="current === {{ $index }} ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'"
-                                        class="w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center"
-                                        role="tab"
-                                        :aria-selected="current === {{ $index }}"
-                                        aria-label="Vidéo LSFB {{ $index + 1 }}"
-                                    >{{ $index + 1 }}</button>
-                                @endforeach
-                            </div>
-
-                            <button
-                                @click="goTo(total - 1)"
-                                :disabled="current === total - 1"
-                                :class="current === total - 1 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
-                                class="text-sm font-medium transition-colors"
-                                aria-label="Vidéo LSFB suivante"
-                            >Suivante →</button>
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0" aria-hidden="true"></span>
+                            <h3 id="lsfb-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">LSFB</h3>
                         </div>
+
+                        @php $lsfbCount = $this->country->lsfbVideos->count(); @endphp
+                        <div
+                            wire:key="lsfb-carousel-{{ $this->country->id }}"
+                            x-data="{
+                                total: {{ $lsfbCount }},
+                                current: 0,
+                                goTo(i) {
+                                    this.$el.querySelectorAll('video').forEach(v => v.pause());
+                                    this.current = i;
+                                    this.$nextTick(() => this.$el.querySelectorAll('video')[i]?.play());
+                                }
+                            }"
+                        >
+                            @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
+                                <div x-show="current === {{ $index }}" class="w-full">
+                                    <x-video-player
+                                        :url="$lsfbVideo->cloudinary_url"
+                                        :thumbnail="$lsfbVideo->thumbnail_url"
+                                        :label="'Vidéo LSFB ' . ($index + 1) . ' — ' . $this->country->name"
+                                        :wire-key="'lsfb-carousel-video-' . $this->country->id . '-' . $index"
+                                    />
+                                </div>
+                            @endforeach
+
+                            <div x-show="total > 1" class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-slate-200">
+                                <button
+                                    @click="goTo(0)"
+                                    :disabled="current === 0"
+                                    :class="current === 0 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
+                                    class="text-sm font-medium transition-colors"
+                                    aria-label="Vidéo LSFB précédente"
+                                >← Précédente</button>
+
+                                <div class="flex gap-1.5" role="tablist" aria-label="Sélectionner une vidéo LSFB">
+                                    @foreach ($this->country->lsfbVideos as $index => $lsfbVideo)
+                                        <button
+                                            @click="goTo({{ $index }})"
+                                            :class="current === {{ $index }} ? 'bg-indigo-500 text-white' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'"
+                                            class="w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center"
+                                            role="tab"
+                                            :aria-selected="current === {{ $index }}"
+                                            aria-label="Vidéo LSFB {{ $index + 1 }}"
+                                        >{{ $index + 1 }}</button>
+                                    @endforeach
+                                </div>
+
+                                <button
+                                    @click="goTo(total - 1)"
+                                    :disabled="current === total - 1"
+                                    :class="current === total - 1 ? 'text-slate-300 cursor-default' : 'text-indigo-600 hover:text-indigo-800'"
+                                    class="text-sm font-medium transition-colors"
+                                    aria-label="Vidéo LSFB suivante"
+                                >Suivante →</button>
+                            </div>
+                        </div>
+                    </section>
+                @endif
+
+                {{-- Signes Internationaux Card --}}
+                @if ($this->country->internationalVideo)
+                    <section
+                        aria-labelledby="intl-heading"
+                        class="rounded-lg border border-slate-200 overflow-hidden"
+                    >
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
+                            <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
+                        </div>
+
+                        <div class="w-full">
+                            <x-video-player
+                                :url="$this->country->internationalVideo->cloudinary_url"
+                                :thumbnail="$this->country->internationalVideo->thumbnail_url"
+                                :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
+                                :wire-key="'int-video-' . $this->country->id"
+                            />
+                        </div>
+                    </section>
+                @endif
+
+                {{-- Aucune vidéo disponible --}}
+                @if ($this->country->lsfbVideos->isEmpty() && ! $this->country->internationalVideo)
+                    <div class="px-6 py-8 text-center text-slate-400 text-sm">
+                        Aucune vidéo disponible pour ce pays.
                     </div>
-                </section>
-            @endif
+                @endif
 
-            {{-- Signes Internationaux Card --}}
-            @if ($this->country->internationalVideo)
-                <section
-                    aria-labelledby="intl-heading"
-                    class="rounded-lg border border-slate-200 overflow-hidden"
-                >
-                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
-                        <h3 id="intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
-                    </div>
-
-                    <div class="w-full max-w-[488.66px] mx-auto">
-                        <x-video-player
-                            :url="$this->country->internationalVideo->cloudinary_url"
-                            :thumbnail="$this->country->internationalVideo->thumbnail_url"
-                            :label="'Vidéo en Signes Internationaux — ' . $this->country->name"
-                            :wire-key="'int-video-' . $this->country->id"
-                        />
-                    </div>
-                </section>
-            @endif
-
-            {{-- Aucune vidéo disponible --}}
-            @if ($this->country->lsfbVideos->isEmpty() && ! $this->country->internationalVideo)
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-6 py-8 text-center text-slate-400 text-sm">
-                    Aucune vidéo disponible pour ce pays.
-                </div>
-            @endif
-
+            </div>
         </div>
 
     @else
