@@ -46,7 +46,7 @@ new class extends Component
         Vous pouvez également utiliser la barre de recherche ci-dessus.
     </p>
 
-    <div class="relative">
+    <div class="relative mt-10">
         <div
             wire:ignore
             id="world-map"
@@ -327,26 +327,31 @@ new class extends Component
             maxZoom: 8,
             worldCopyJump: true,
             zoomControl: false,
+            attributionControl: false,
         });
+        const _attrCtrl = L.control.attribution({ position: 'bottomright' }).addTo(map);
+        map.attributionControl = _attrCtrl;
 
         // --- Système de styles de carte ---
+        const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
         const MAP_STYLES = {
             satellite: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                attribution: OSM_ATTR,
             },
             light: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-                attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan',
+                attribution: OSM_ATTR,
             },
             dark: {
                 url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                attribution: OSM_ATTR,
                 cssFilter: 'invert(1) hue-rotate(180deg) brightness(0.75) contrast(1.1)',
             },
             standard: {
                 url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                attribution: OSM_ATTR,
             },
             colorful: {
                 url: null,
@@ -354,7 +359,7 @@ new class extends Component
             },
             google: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+                attribution: OSM_ATTR,
             },
         };
 
