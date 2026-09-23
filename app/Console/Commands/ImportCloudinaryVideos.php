@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\SignVideoType;
 use App\Models\Country;
+use App\Models\MarineArea;
 use App\Models\SignVideo;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -12,7 +13,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 #[Signature('cloudinary:import-videos
-    {--root=Pays du monde : Root Cloudinary folder}
+    {--entity=country : Target entity: country (default) or marine-area}
+    {--root= : Root Cloudinary folder (default depends on entity)}
     {--dry-run : Preview what would be imported without saving}
     {--force : Overwrite existing sign_videos records}')]
 #[Description('Import sign language videos from Cloudinary into sign_videos table')]
@@ -36,9 +38,20 @@ class ImportCloudinaryVideos extends Command
             return self::FAILURE;
         }
 
-        $root = $this->option('root');
+        $entity = $this->option('entity');
         $dryRun = $this->option('dry-run');
         $force = $this->option('force');
+
+        if (! in_array($entity, ['country', 'marine-area'], strict: true)) {
+            $this->error("Option --entity doit être 'country' ou 'marine-area'.");
+
+            return self::FAILURE;
+        }
+
+        $root = $this->option('root')
+            ?: ($entity === 'marine-area' ? 'Mers du monde' : 'Pays du monde');
+
+        $this->info("Entité cible : {$entity} | Dossier racine : «{$root}»");
 
         if ($dryRun) {
             $this->warn('[DRY RUN] No changes will be saved.');
@@ -52,12 +65,11 @@ class ImportCloudinaryVideos extends Command
         $subfolders = $this->listSubfolders($root);
 
         if ($subfolders->isEmpty()) {
-            $this->warn("No subfolders found in «{$root}». Aborting.");
-
-            return self::FAILURE;
+            $this->warn("No subfolders found in «{$root}». Fetching videos directly from root folder.");
+            $subfolders = collect([$root]);
+        } else {
+            $this->info('Continents trouvés : '.$subfolders->implode(', '));
         }
-
-        $this->info('Continents trouvés : '.$subfolders->implode(', '));
 
         $resources = $this->fetchVideosFromFolders($subfolders)
             ->sortBy('public_id')
@@ -82,16 +94,20 @@ class ImportCloudinaryVideos extends Command
                 continue;
             }
 
-            if (in_array($rawName, self::REGIONAL_ENTRIES, strict: true)) {
+            if ($entity === 'country' && in_array($rawName, self::REGIONAL_ENTRIES, strict: true)) {
                 $this->line("  SKIP (entrée régionale) : {$publicId}");
                 $skipped++;
 
                 continue;
             }
 
-            $country = $this->findCountry($rawName);
+            if ($entity === 'marine-area') {
+                $signable = $this->findMarineArea($rawName);
+            } else {
+                $signable = $this->findCountry($rawName);
+            }
 
-            if (! $country) {
+            if (! $signable) {
                 $notFound[] = "{$rawName} ({$publicId})";
                 $skipped++;
 
@@ -99,14 +115,14 @@ class ImportCloudinaryVideos extends Command
             }
 
             $label = $type === SignVideoType::International ? 'INT' : 'LSF';
-            $this->line("  [{$label}] «{$publicId}» → {$country->name} (id={$country->id})");
+            $this->line("  [{$label}] «{$publicId}» → {$signable->name} (id={$signable->id})");
 
             if (! $dryRun) {
                 SignVideo::updateOrCreate(
                     ['cloudinary_public_id' => $publicId],
                     [
-                        'signable_type' => Country::class,
-                        'signable_id' => $country->id,
+                        'signable_type' => $signable::class,
+                        'signable_id' => $signable->id,
                         'type' => $type,
                         'cloudinary_url' => $resource['secure_url'],
                         'thumbnail_url' => $this->thumbnailUrl($publicId),
@@ -261,6 +277,53 @@ class ImportCloudinaryVideos extends Command
         if ($stripped !== $name) {
             return Country::where('name', $stripped)->first()
                 ?? Country::whereRaw('LOWER(name) = LOWER(?)', [$stripped])->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Known name mismatches between Cloudinary filenames and DB marine area names.
+     *
+     * @var array<string, string>
+     */
+    private const MARINE_NAME_ALIASES = [
+        'Mer Méditerranée' => 'mer Méditerranée',
+        'Mer La Manche' => 'La Manche',
+        'Océan Arctique' => 'océan Arctique',
+        'Océan Atlantique Nord' => 'océan Atlantique Nord',
+        'Océan Atlantique Sud' => 'océan Atlantique Sud',
+        'Océan Austral' => 'océan Austral',
+        'Océan Indien' => 'océan Indien',
+        'Océan Pacifique Nord' => 'océan Pacifique Nord',
+        'Océan Pacifique Sud' => 'océan Pacifique Sud',
+    ];
+
+    /**
+     * Find a marine area by name with alias and case-insensitive fallbacks.
+     */
+    private function findMarineArea(string $name): ?MarineArea
+    {
+        if (isset(self::MARINE_NAME_ALIASES[$name])) {
+            $alias = self::MARINE_NAME_ALIASES[$name];
+
+            return MarineArea::where('name', $alias)->first()
+                ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$alias])->first();
+        }
+
+        return MarineArea::where('name', $name)->first()
+            ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$name])->first()
+            ?? $this->findMarineAreaStripped($name);
+    }
+
+    private function findMarineAreaStripped(string $name): ?MarineArea
+    {
+        // Strip trailing " 1", " 2", etc. (duplicate videos in Cloudinary)
+        $stripped = preg_replace('/\s+\d+$/', '', $name);
+
+        if ($stripped !== $name) {
+            return MarineArea::where('name', $stripped)->first()
+                ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$stripped])->first();
         }
 
         return null;

@@ -9,13 +9,13 @@ class CountrySignLanguage extends Model
 {
     protected $fillable = [
         'country_id',
-        'nom',
+        'name',
         'sigle',
-        'annee_de_reconnaissance',
+        'year_official',
     ];
 
     protected $casts = [
-        'annee_de_reconnaissance' => 'integer',
+        'year_official' => 'integer',
     ];
 
     public function country(): BelongsTo

@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\SignVideoType;
 use App\Models\Country;
+use App\Models\MarineArea;
 use App\Models\SignVideo;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -40,6 +41,14 @@ class SignVideoFactory extends Factory
         return $this->state([
             'signable_type' => Country::class,
             'signable_id' => $country->id,
+        ]);
+    }
+
+    public function forMarineArea(MarineArea $area): static
+    {
+        return $this->state([
+            'signable_type' => MarineArea::class,
+            'signable_id' => $area->id,
         ]);
     }
 }

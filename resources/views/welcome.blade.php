@@ -24,31 +24,71 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-900" x-data="{ mapMode: 'pays' }">
+<body
+    class="bg-slate-50 min-h-screen text-slate-900"
+    x-data="{
+        mapMode: new URLSearchParams(window.location.search).get('mode') || 'pays',
+        setMode(mode) {
+            this.mapMode = mode;
+            const url = new URL(window.location);
+            url.searchParams.set('mode', mode);
+            if (mode === 'pays') { url.searchParams.delete('zone'); }
+            history.pushState({}, '', url);
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('map-mode-changed', { detail: { mode } })));
+        }
+    }"
+    x-on:switch-to-pays.window="
+        setMode('pays');
+        $nextTick(() => Livewire.dispatch('country-selected', { countryId: $event.detail.countryId }));
+    "
+>
 
     <a href="#main-content"
        class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-blue-700 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
         Aller au contenu principal
     </a>
 
-    {{-- Header: logo + titre + pills --}}
+    {{-- Header: logo + titre + tabs + filtres --}}
     <header role="banner" class="fixed top-0 left-0 right-0 z-[1000] bg-white border-b border-slate-200">
 
-        {{-- Ligne 1 : logo + marque + boutons commande --}}
+        {{-- Ligne 1 : logo + marque + tabs + boutons commande --}}
         <div class="px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3">
             <img src="/images/cfls-logo.png" alt="CFLS" class="h-10 w-auto shrink-0">
 
+            {{-- Tabs Pays / Mers --}}
+            <nav aria-label="Section principale" class="flex items-center gap-1 shrink-0">
+                <button
+                    @click="setMode('pays')"
+                    :aria-current="mapMode === 'pays' ? 'page' : false"
+                    class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+                    :class="mapMode === 'pays'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-100'"
+                >
+                    <span class="hidden sm:inline">🗺️ Pays</span>
+                    <span class="sm:hidden">🗺️</span>
+                </button>
+                <button
+                    @click="setMode('mers')"
+                    :aria-current="mapMode === 'mers' ? 'page' : false"
+                    class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1"
+                    :class="mapMode === 'mers'
+                        ? 'bg-sky-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-100'"
+                >
+                    <span class="hidden sm:inline">🌊 Mers</span>
+                    <span class="sm:hidden">🌊</span>
+                </button>
+            </nav>
+
             <div class="flex items-center gap-2 min-w-0 flex-1">
-                <h1 class="text-sm sm:text-base font-bold text-blue-700 tracking-tight whitespace-nowrap">
-                    LES PAYS DU MONDE
-                </h1>
                 <span class="hidden sm:block text-slate-300 mx-1 select-none" aria-hidden="true">|</span>
                 <p class="hidden sm:block text-xs sm:text-sm text-slate-500 truncate">
-                    Signes des pays du monde
+                    Signes des pays et mers du monde
                 </p>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div x-show="mapMode === 'pays'" class="flex items-center gap-2 shrink-0">
                 <a href="https://cfls.be/boutique/l-europe"
                    target="_blank"
                    rel="noopener noreferrer"
@@ -70,9 +110,16 @@
             </div>
         </div>
 
-        {{-- Ligne 2 : filtres continent (pills) --}}
+        {{-- Ligne 2 : filtres selon le mode actif --}}
         <div class="px-4 sm:px-6 lg:px-8 py-2 border-t border-slate-100">
-            <livewire:continent-filter />
+            <div x-show="mapMode === 'pays'" x-cloak class="space-y-2">
+                <livewire:continent-filter />
+                <livewire:country-list />
+            </div>
+            <div x-show="mapMode === 'mers'" x-cloak class="space-y-2">
+                <livewire:ocean-filter />
+                <livewire:marine-list />
+            </div>
         </div>
     </header>
 
@@ -91,9 +138,6 @@
     >
         {{-- Pays mode --}}
         <div id="panel-pays" x-show="mapMode === 'pays'" x-cloak class="space-y-3">
-
-            {{-- Barre de pays / buscador --}}
-            <livewire:country-list />
 
             {{-- Grille : mapa (60%) + détail (40%) --}}
             <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">
@@ -115,15 +159,25 @@
         </div>
 
         {{-- Mers et océans mode --}}
-        <div id="panel-mers" x-show="mapMode === 'mers'" x-cloak>
-            <div class="flex flex-col lg:flex-row gap-4 items-start">
-                <div class="w-full lg:w-2/3">
+        <div id="panel-mers" x-show="mapMode === 'mers'" x-cloak class="space-y-3">
+
+            {{-- Grille : carte (60%) + fiche (40%) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 items-start">
+
+                {{-- Carte + INFO --}}
+                <div class="space-y-3">
                     <livewire:ocean-map />
+                    <livewire:marine-info />
                 </div>
-                <div class="w-full lg:w-1/3 lg:sticky lg:top-20">
+
+                {{-- Vidéos --}}
+                <div class="space-y-3 lg:space-y-0 lg:sticky lg:h-[calc(100vh-8rem)] lg:flex lg:flex-col lg:gap-3"
+                     :style="'top: ' + (headerHeight + 12) + 'px'"
+                >
                     <livewire:ocean-detail />
                 </div>
             </div>
+
         </div>
 
     </main>

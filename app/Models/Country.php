@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -52,8 +53,8 @@ class Country extends Model
     public function signLanguages(): HasMany
     {
         return $this->hasMany(CountrySignLanguage::class)
-            ->orderBy('annee_de_reconnaissance')
-            ->orderBy('nom');
+            ->orderBy('year_official')
+            ->orderBy('name');
     }
 
     public function continent(): BelongsTo
@@ -83,5 +84,10 @@ class Country extends Model
     {
         return $this->morphOne(SignVideo::class, 'signable')
             ->where('type', SignVideoType::International->value);
+    }
+
+    public function marineAreas(): BelongsToMany
+    {
+        return $this->belongsToMany(MarineArea::class, 'marine_area_country');
     }
 }

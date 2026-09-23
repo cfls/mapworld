@@ -564,5 +564,8 @@ new class extends Component
         });
 
         window.addEventListener('resize', () => map?.invalidateSize());
+        window.addEventListener('map-mode-changed', (e) => {
+            if (e.detail.mode === 'pays') { setTimeout(() => map?.invalidateSize(), 50); }
+        });
     }
 </script>

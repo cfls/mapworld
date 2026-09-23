@@ -47,9 +47,8 @@ new class extends Component
 
         return CountrySignLanguage::query()
             ->where('country_id', $this->countryId)
-            ->whereNotNull('annee_de_reconnaissance')
-            ->orderBy('annee_de_reconnaissance')
-            ->orderBy('nom')
+            ->orderBy('year_official')
+            ->orderBy('name')
             ->get();
     }
 };
@@ -134,10 +133,12 @@ new class extends Component
                         <dd class="text-sm text-slate-800 flex-1 space-y-1">
                             @foreach ($this->signLanguages as $sl)
                                 <div>
-                                    <span class="font-medium">{{ $sl->nom }}</span>@if ($sl->sigle)
+                                    <span class="font-medium">{{ $sl->name }}</span>@if ($sl->sigle)
                                         <span class="text-slate-500">({{ $sl->sigle }})</span>
                                     @endif
-                                    <span class="text-xs text-slate-400">— {{ $sl->annee_de_reconnaissance }}</span>
+                                    @if ($sl->year_official)
+                                        <span class="text-xs text-slate-400">— {{ $sl->year_official }}</span>
+                                    @endif
                                 </div>
                             @endforeach
                         </dd>

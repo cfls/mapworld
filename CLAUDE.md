@@ -266,8 +266,11 @@ Si al importar un nuevo continente hay países no encontrados, agregar el alias 
 
 ### Países pendientes de agregar a la DB
 
-- **Curaçao** — existe video en Cloudinary (`Curaçao_Int_p3yio9`) pero no hay
-  entrada en la tabla `countries`. Crear el registro antes de reimportar.
 - Entradas regionales (`Amérique`, `Amérique Du Nord`, `Amérique Centrale`,
   `Amérique Du Sud`) — son videos de lengua de señas regional, no de país. Decidir
   si se modelan como países especiales o se gestionan de otra manera.
+
+### Videos con formato no estándar en Cloudinary (ignorados en importación)
+
+- `Canaries_ldromq` — sin sufijo de tipo (`_B_` / `_Int_`). Renombrar en Cloudinary si se quiere importar.
+- `Syrie_B_No_Official_t7pnrb` — nombre no estándar. Renombrar o ignorar.
