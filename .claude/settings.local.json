@@ -59,7 +59,11 @@
       "Bash(grep -n '$wire\\\\|dispatch\\\\|marine-area' resources/views/components/⚡ocean-map.blade.php)",
       "mcp__plugin_context-mode_context-mode__ctx_execute_file",
       "Bash(del \"C:\\\\Users\\\\User\\\\Herd\\\\mapworld\\\\resources\\\\views\\\\admin\\\\dashboard.blade.php\")",
-      "Bash(xargs grep -l \"MarineArea\\\\|marine_area\\\\|SeaMap\\\\|sea_map\")"
+      "Bash(xargs grep -l \"MarineArea\\\\|marine_area\\\\|SeaMap\\\\|sea_map\")",
+      "Bash(C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Herd\\\\bin\\\\php84 artisan *)",
+      "Bash(/c/Users/User/.config/herd/bin/php85/php.exe artisan *)",
+      "Bash(/c/Users/User/.config/herd/bin/php85/php.exe *)",
+      "Bash(xargs grep -l \"MarineArea\\\\|marine\")"
     ]
   },
   "enabledMcpjsonServers": [

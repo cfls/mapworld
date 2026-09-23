@@ -24,7 +24,8 @@ new class extends Component
             return;
         }
 
-        $oceans = MarineArea::where('ocean_group', $group)
+        $oceans = MarineArea::active()
+            ->where('ocean_group', $group)
             ->where('type', 'ocean')
             ->get();
 
@@ -133,32 +134,20 @@ new class extends Component
                 </section>
 
                 {{-- Signes Internationaux --}}
-                <section aria-labelledby="ocean-intl-heading" class="rounded-lg border border-slate-200 overflow-hidden">
-                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
-                        <h3 id="ocean-intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
-                    </div>
-
-                    @if ($area->internationalVideo)
+                @if ($area->internationalVideo)
+                    <section aria-labelledby="ocean-intl-heading" class="rounded-lg border border-slate-200 overflow-hidden">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-violet-500 shrink-0" aria-hidden="true"></span>
+                            <h3 id="ocean-intl-heading" class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Signe International</h3>
+                        </div>
                         <x-video-player
                             :url="$area->internationalVideo->cloudinary_url"
                             :thumbnail="$area->internationalVideo->thumbnail_url"
                             :label="'Vidéo en Signes Internationaux — ' . $area->name"
                             :wire-key="'ocean-intl-' . $area->id"
                         />
-                    @else
-                        <div
-                            class="w-full aspect-video bg-slate-50 flex flex-col items-center justify-center gap-2"
-                            role="img"
-                            aria-label="Vidéo en Signe International pas encore disponible pour {{ $area->name }}"
-                        >
-                            <span class="text-3xl" aria-hidden="true">🌐</span>
-                            <p class="text-xs text-slate-400 font-medium text-center px-4">
-                                Vidéo en Signe International pas encore disponible
-                            </p>
-                        </div>
-                    @endif
-                </section>
+                    </section>
+                @endif
 
             </div>
         </div>

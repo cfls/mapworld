@@ -65,12 +65,11 @@ class ImportCloudinaryVideos extends Command
         $subfolders = $this->listSubfolders($root);
 
         if ($subfolders->isEmpty()) {
-            $this->warn("No subfolders found in «{$root}». Aborting.");
-
-            return self::FAILURE;
+            $this->warn("No subfolders found in «{$root}». Fetching videos directly from root folder.");
+            $subfolders = collect([$root]);
+        } else {
+            $this->info('Continents trouvés : '.$subfolders->implode(', '));
         }
-
-        $this->info('Continents trouvés : '.$subfolders->implode(', '));
 
         $resources = $this->fetchVideosFromFolders($subfolders)
             ->sortBy('public_id')
@@ -290,6 +289,7 @@ class ImportCloudinaryVideos extends Command
      */
     private const MARINE_NAME_ALIASES = [
         'Mer Méditerranée' => 'mer Méditerranée',
+        'Mer La Manche' => 'La Manche',
         'Océan Arctique' => 'océan Arctique',
         'Océan Atlantique Nord' => 'océan Atlantique Nord',
         'Océan Atlantique Sud' => 'océan Atlantique Sud',
@@ -312,7 +312,21 @@ class ImportCloudinaryVideos extends Command
         }
 
         return MarineArea::where('name', $name)->first()
-            ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$name])->first();
+            ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$name])->first()
+            ?? $this->findMarineAreaStripped($name);
+    }
+
+    private function findMarineAreaStripped(string $name): ?MarineArea
+    {
+        // Strip trailing " 1", " 2", etc. (duplicate videos in Cloudinary)
+        $stripped = preg_replace('/\s+\d+$/', '', $name);
+
+        if ($stripped !== $name) {
+            return MarineArea::where('name', $stripped)->first()
+                ?? MarineArea::whereRaw('LOWER(name) = LOWER(?)', [$stripped])->first();
+        }
+
+        return null;
     }
 
     /**

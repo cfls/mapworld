@@ -24,7 +24,8 @@ new class extends Component
             return;
         }
 
-        $oceans = MarineArea::where('ocean_group', $group)
+        $oceans = MarineArea::active()
+            ->where('ocean_group', $group)
             ->where('type', 'ocean')
             ->get();
 
