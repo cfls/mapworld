@@ -16,3 +16,13 @@
         display: none;
     }
 }
+
+/* Safari < 15 doesn't support aspect-ratio; fallback via padding-bottom */
+@supports not (aspect-ratio: 1) {
+    .aspect-video {
+        padding-bottom: 56.25%;
+    }
+    .aspect-square {
+        padding-bottom: 100%;
+    }
+}

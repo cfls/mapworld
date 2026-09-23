@@ -119,6 +119,7 @@ new class extends Component
 
 <style>
     #ocean-map .leaflet-interactive:focus { outline: none; }
+    #ocean-map { touch-action: pan-y; }
 
     .ocean-label {
         background: transparent;
@@ -138,6 +139,11 @@ new class extends Component
     }
     .ocean-label::before { display: none; }
 
+    @-webkit-keyframes ocean-pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(12,74,110,0.5); }
+        70%  { box-shadow: 0 0 0 10px rgba(12,74,110,0); }
+        100% { box-shadow: 0 0 0 0 rgba(12,74,110,0); }
+    }
     @keyframes ocean-pulse {
         0%   { box-shadow: 0 0 0 0 rgba(12,74,110,0.5); }
         70%  { box-shadow: 0 0 0 10px rgba(12,74,110,0); }
@@ -442,7 +448,7 @@ new class extends Component
 
             const pulseIcon = L.divIcon({
                 className: '',
-                html: '<div style="width:18px;height:18px;border-radius:50%;background:rgba(12,74,110,0.7);border:2px solid #fff;box-shadow:0 0 0 4px rgba(12,74,110,0.3);animation:ocean-pulse 1.5s infinite;"></div>',
+                html: '<div style="width:18px;height:18px;border-radius:50%;background:rgba(12,74,110,0.7);border:2px solid #fff;box-shadow:0 0 0 4px rgba(12,74,110,0.3);-webkit-animation:ocean-pulse 1.5s infinite;animation:ocean-pulse 1.5s infinite;"></div>',
                 iconSize: [18, 18],
                 iconAnchor: [9, 9],
             });
