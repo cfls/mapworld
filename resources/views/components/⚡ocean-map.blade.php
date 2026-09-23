@@ -320,7 +320,7 @@ new class extends Component
             },
         };
 
-        const OCEAN_STYLE_KEY = 'mapworld-ocean-tile-style';
+        const OCEAN_STYLE_KEY = 'mapworld-ocean-tile-style-v2';
         let currentTileLayer = null;
 
         function applyOceanStyle(styleKey) {
