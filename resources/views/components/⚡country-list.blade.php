@@ -80,7 +80,7 @@ new class extends Component
         return Country::select('id', 'name', 'iso2', 'flag_path', 'continent_id')
             ->whereHas('signVideos')
             ->when($this->selectedContinentId, fn ($q) => $q->where('continent_id', $this->selectedContinentId))
-            ->where('name', 'like', "{$this->search}%")
+            ->whereRaw('REPLACE(name, \'-\', \' \') LIKE ?', [str_replace('-', ' ', trim($this->search)).'%'])
             ->orderBy('name')
             ->limit(12)
             ->get();
