@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Les Pays du Monde — Signes en LSFB et Signes Internationaux</title>
     <meta name="description" content="Explorez les pays du monde avec des vidéos en LSFB et en Signes Internationaux pour chaque pays.">
+    <meta name="robots" content="{{ app()->isProduction() ? 'index, follow' : 'noindex, nofollow' }}">
     <link rel="canonical" href="{{ url('/') }}">
     <link rel="icon" type="image/png" href="{{ asset('images/cfls-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/cfls-logo.png') }}">
@@ -23,6 +24,14 @@
     <meta name="twitter:image" content="{{ asset('images/cfls-logo.png') }}">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-PZJ2J8Z3');</script>
+    <!-- End Google Tag Manager -->
 </head>
 <body
     class="bg-slate-50 min-h-screen text-slate-900"
@@ -42,6 +51,10 @@
         $nextTick(() => Livewire.dispatch('country-selected', { countryId: $event.detail.countryId }));
     "
 >
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PZJ2J8Z3"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
     <a href="#main-content"
        class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-blue-700 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">
