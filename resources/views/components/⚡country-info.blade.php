@@ -127,6 +127,13 @@ new class extends Component
                     </div>
                 @endif
 
+                @if ($info->plat_typique)
+                    <div class="flex items-baseline gap-2 min-w-0">
+                        <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-28">Plat typique</dt>
+                        <dd class="text-sm text-slate-800">{{ $info->plat_typique }}</dd>
+                    </div>
+                @endif
+
                 @if ($this->signLanguages->isNotEmpty())
                     <div class="flex items-start gap-2 min-w-0 sm:col-span-2">
                         <dt class="text-sm font-bold text-slate-700 uppercase tracking-wide shrink-0 w-36">Langue(s) des signes</dt>

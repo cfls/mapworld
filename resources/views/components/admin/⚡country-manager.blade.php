@@ -54,6 +54,8 @@ new class extends Component
 
     public string $currencyCode = '';
 
+    public string $platTypique = '';
+
     // Sign languages
     /** @var array<int, array{name: string, sigle: string, year_official: string}> */
     public array $signLanguages = [];
@@ -135,6 +137,7 @@ new class extends Component
         $this->populationYear = $info?->population_year !== null ? (string) $info->population_year : '';
         $this->currency = $info?->currency ?? '';
         $this->currencyCode = $info?->currency_code ?? '';
+        $this->platTypique = $info?->plat_typique ?? '';
 
         $this->signLanguages = $country->signLanguages
             ->sortBy('year_official')
@@ -182,6 +185,7 @@ new class extends Component
             'populationYear' => 'nullable|integer|min:1900|max:2100',
             'currency' => 'nullable|string|max:100',
             'currencyCode' => 'nullable|string|max:10',
+            'platTypique' => 'nullable|string|max:255',
             'signLanguages.*.name' => 'required|string|max:255',
             'signLanguages.*.sigle' => 'nullable|string|max:20',
             'signLanguages.*.year_official' => 'nullable|integer|min:1500|max:2100',
@@ -235,6 +239,7 @@ new class extends Component
             'population_year' => $this->populationYear !== '' ? (int) $this->populationYear : null,
             'currency' => $this->currency !== '' ? trim($this->currency) : null,
             'currency_code' => $this->currencyCode !== '' ? strtoupper(trim($this->currencyCode)) : null,
+            'plat_typique' => $this->platTypique !== '' ? trim($this->platTypique) : null,
         ];
 
         $hasInfo = collect($infoData)->filter()->isNotEmpty();
@@ -331,6 +336,7 @@ new class extends Component
         $this->populationYear = '';
         $this->currency = '';
         $this->currencyCode = '';
+        $this->platTypique = '';
         $this->signLanguages = [];
         $this->confirmingDeleteId = null;
         $this->resetValidation();
@@ -557,6 +563,17 @@ new class extends Component
                             >
                             @error('currencyCode') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">Plat typique</label>
+                        <input
+                            type="text"
+                            wire:model="platTypique"
+                            class="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Moules-frites"
+                        >
+                        @error('platTypique') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
