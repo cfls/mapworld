@@ -25,6 +25,7 @@ class CountryInfo extends Model
         'parent_country',
         'langue_de_signes',
         'annee_de_reconnaissance',
+        'plat_typique',
     ];
 
     protected $casts = [
